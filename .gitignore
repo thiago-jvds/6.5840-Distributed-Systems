@@ -1,2 +1,5 @@
 pkg/
 *-handin.tar.gz
+.DS_Store
+a[1-9]*.txt
+q[1-9]*.txt
