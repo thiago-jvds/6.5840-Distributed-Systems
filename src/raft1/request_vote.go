@@ -32,21 +32,13 @@ type RequestVoteReply struct {
 // Returns true if candidate's log is at least up-to-date, else false
 func (rf *Raft) IsAtLeastUpToDate(args *RequestVoteArgs) bool {
 	receiverLastIndex := len(rf.log) - 1
-
-	var receiverLastLogTerm int = -1
-
-	if receiverLastIndex >= 0 {
-		receiverLastLogTerm = rf.log[receiverLastIndex].Term
-	}
+	receiverLastLogTerm := rf.log[receiverLastIndex].Term
 
 	candidateLastIndex := args.LastLogIndex
 	candidateLastLogTerm := args.LastLogTerm
 
-	if receiverLastLogTerm != candidateLastLogTerm {
-		return candidateLastLogTerm >= receiverLastLogTerm
-	}
-
-	return candidateLastIndex >= receiverLastIndex
+	return !(candidateLastLogTerm < receiverLastLogTerm ||
+		(candidateLastLogTerm == receiverLastLogTerm && candidateLastIndex < receiverLastIndex))
 
 }
 
@@ -84,7 +76,7 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 }
 
 func (rf *Raft) sendRequestVote(server int, args *RequestVoteArgs, reply *RequestVoteReply) bool {
-	DebugPrint(dVote, "S%d RequestVote -> S%d (T%d)", rf.me, server, args.Term)
+	// DebugPrint(dVote, "S%d RequestVote -> S%d (T%d)", rf.me, server, args.Term)
 	ok := rf.peers[server].Call("Raft.RequestVote", args, reply)
 
 	// (c) receiving valid (success replies) responses from sendRequestVote

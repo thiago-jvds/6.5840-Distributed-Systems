@@ -7,10 +7,7 @@ func (rf *Raft) beginElection() {
 	DebugPrint(dVote, "S%d BeginElection, Term: %d", rf.me, rf.currentTerm)
 
 	lastLogIndex := len(rf.log) - 1
-	var lastLogTerm int = -1
-	if lastLogIndex >= 0 {
-		lastLogTerm = rf.log[lastLogIndex].Term
-	}
+	lastLogTerm := rf.log[lastLogIndex].Term
 
 	args := RequestVoteArgs{
 		Term:         rf.currentTerm,
@@ -42,7 +39,7 @@ func (rf *Raft) beginElection() {
 
 				// If RPC request or response contains term T > currentTerm:
 				// set currentTerm = T, convert to follower (§5.1)
-				if rf.currentTerm < reply.Term {
+				if reply.Term > rf.currentTerm {
 					rf.toFollower(reply.Term)
 					return
 				}
@@ -59,7 +56,7 @@ func (rf *Raft) beginElection() {
 				if atomic.LoadInt32(&votes) > rf.majority {
 					rf.toLeader()
 
-					rf.sendHeartbeats()
+					rf.sendHeartbeatsAndNewEntries()
 				}
 			}
 		}(s)

@@ -93,6 +93,9 @@ type Raft struct {
 
 	// Majority number
 	majority int32
+
+	// Apply channel to send commit messages
+	applyCh chan raftapi.ApplyMsg
 }
 
 func (rf *Raft) sendAck() {
@@ -211,67 +214,6 @@ func (rf *Raft) toLeader() {
 	}
 }
 
-// Election functions
-
-func (rf *Raft) sendHeartbeats() {
-	for s := range len(rf.peers) {
-
-		if s == rf.me {
-			continue
-		}
-
-		go func(server int) {
-			// create args
-			rf.mu.Lock()
-
-			if rf.state != Leader {
-				rf.mu.Unlock()
-				return
-			}
-
-			prevLogIndex := rf.nextIndex[server] - 1
-			var prevLogTerm int = -1
-			if prevLogIndex >= 0 {
-				prevLogTerm = rf.log[prevLogIndex].Term
-			}
-
-			args := AppendEntriesArgs{
-				Term:         rf.currentTerm,
-				LeaderId:     rf.me,
-				PrevLogIndex: prevLogIndex,
-				PrevLogTerm:  prevLogTerm,
-				Entries:      append(make([]LogEntry, 0), rf.log[rf.nextIndex[server]:]...),
-			}
-			rf.mu.Unlock()
-
-			reply := AppendEntriesReply{}
-			ok := rf.sendAppendEntries(server, &args, &reply)
-
-			if ok {
-				rf.mu.Lock()
-				defer rf.mu.Unlock()
-
-				// If RPC request or response contains term T > currentTerm:
-				// set currentTerm = T, convert to follower (§5.1)
-				if reply.Term > rf.currentTerm {
-					rf.toFollower(reply.Term)
-					return
-
-					// if server changed its state after args was created, do nothing
-				} else if rf.state != Leader || rf.currentTerm < args.Term {
-					return
-
-				} else if reply.Success {
-
-				} else if !reply.Success {
-
-				}
-
-			}
-		}(s)
-	}
-}
-
 func (rf *Raft) CheckElection() {
 
 	// loop indefinetely for a new election
@@ -325,8 +267,61 @@ func (rf *Raft) CheckElection() {
 
 		case Leader:
 			time.Sleep(heartbeatInterval)
-			rf.sendHeartbeats()
+			rf.sendHeartbeatsAndNewEntries()
 		}
+	}
+}
+
+func (rf *Raft) PushCommitIndex() {
+	waitTime := 10 * time.Millisecond
+
+	for !rf.killed() {
+
+		time.Sleep(waitTime)
+
+		rf.mu.Lock()
+
+		if rf.state != Leader {
+			rf.mu.Unlock()
+			continue
+		}
+
+		// DebugPrint(dCommit, "S%v trying commit index. Info log: %v, matchIndex: %v, term: %v", rf.me, rf.log, rf.matchIndex, rf.currentTerm)
+		for N := rf.commitIndex + 1; N < len(rf.log); N++ {
+
+			if rf.isMajority(N) && rf.log[N].Term == rf.currentTerm {
+				rf.commitIndex = N
+			}
+		}
+
+		rf.mu.Unlock()
+
+	}
+}
+
+func (rf *Raft) SendApplyCh() {
+	waitTime := 10 * time.Millisecond
+
+	for !rf.killed() {
+
+		time.Sleep(waitTime)
+
+		rf.mu.Lock()
+
+		// DebugPrint(dCommit, "S%v is committing entries index [%v, %v)", rf.me, rf.lastApplied, rf.commitIndex)
+
+		for rf.commitIndex > rf.lastApplied {
+			rf.lastApplied++
+			entry := rf.log[rf.lastApplied]
+			msg := raftapi.ApplyMsg{
+				CommandValid: true,
+				Command:      entry.Command,
+				CommandIndex: rf.lastApplied,
+			}
+			rf.applyCh <- msg
+		}
+		rf.mu.Unlock()
+
 	}
 }
 
@@ -343,12 +338,29 @@ func (rf *Raft) CheckElection() {
 // term. the third return value is true if this server believes it is
 // the leader.
 func (rf *Raft) Start(command interface{}) (int, int, bool) {
-	index := -1
-	term := -1
-	isLeader := true
+	rf.mu.Lock()
 
-	// Your code here (3B).
+	index := len(rf.log)
+	term := rf.currentTerm
+	isLeader := rf.state == Leader
 
+	if !isLeader {
+		rf.mu.Unlock()
+		return -1, term, isLeader
+	}
+
+	newEntry := LogEntry{
+		Term:    term,
+		Command: command,
+	}
+	rf.log = append(rf.log, newEntry)
+	rf.mu.Unlock()
+
+	// Send AppendEntries to other servers
+	rf.sendHeartbeatsAndNewEntries()
+
+	//If command received from client: append entry to local log,
+	// respond after entry applied to state machine (§5.3)
 	return index, term, isLeader
 }
 
@@ -390,10 +402,12 @@ func Make(peers []*labrpc.ClientEnd, me int,
 	// Your initialization code here (3A, 3B, 3C).
 	rf.currentTerm = 0
 	rf.votedFor = NULL
-	rf.log = make([]LogEntry, 0)
+	rf.log = make([]LogEntry, 1)
+	rf.log[0] = LogEntry{Term: 0}
 
 	rf.commitIndex = 0
 	rf.lastApplied = 0
+	rf.applyCh = applyCh
 
 	rf.nextIndex = make([]int, len(peers))
 	rf.matchIndex = make([]int, len(peers))
@@ -404,8 +418,11 @@ func Make(peers []*labrpc.ClientEnd, me int,
 	// initialize from state persisted before a crash
 	rf.readPersist(persister.ReadRaftState())
 
-	// start ticker goroutine to start elections
 	go rf.CheckElection()
+
+	go rf.PushCommitIndex()
+
+	go rf.SendApplyCh()
 
 	return rf
 }
