@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <style>
+        body { 
+            background-color: #1e1e1e; 
+            color: #ffffff; 
+            font-family: monospace;
+            padding: 20px;
+        }
+        .log-container {
+            display: grid;
+            grid-template-columns: repeat(var(--n-columns), 1fr);
+            gap: 0;
+            border: 1px dotted #444;
+        }
+        .log-entry {
+            padding: 8px;
+            margin: 0;
+            white-space: pre-wrap;
+            border-bottom: 1px dotted #444;
+            border-right: 1px dotted #444;
+            min-height: 1.2em;
+        }
+        .log-entry:last-child {
+            border-right: none;
+        }
+        .log-container:last-child .log-entry {
+            border-bottom: none;
+        }
+        .timestamp {
+            color: #888888;
+        }
+        /* Single column log entries */
+        .log-entry:only-child {
+            border: none;
+            border-bottom: 1px dotted #444;
+        }
+        .log-entry:only-child:last-child {
+            border-bottom: none;
+        }
+    </style>
+    <style>:root { --n-columns: 3; }</style>
+</head>
+<body>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 0, VotedFor: -1, Term: 0</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 0, VotedFor: -1, Term: 0</span></div><div class="log-entry"></div></div>
+<div class="log-entry">000012 INFO S3, State: 0, VotedFor: -1, Term: 0
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 0, VotedFor: -1, Term: 0</span></div></div>
+<div class="log-entry">000012 INFO S4, State: 0, VotedFor: -1, Term: 0
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 1, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 BeginElection, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 RequestVote -> S4 (T1)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 RequestVote -> S1 (T1)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 1, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 RequestVote -> S2 (T1)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 RequestVote -> S3 (T1)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 1, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 1 1 1 1], matchIndex: [0 0 0 0 0], len log: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 1 1 1 1], matchIndex: [0 0 0 0 0], len log: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 1 1 1 1], matchIndex: [0 0 0 0 0], len log: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 1 1 1 1], matchIndex: [0 0 0 0 0], len log: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S2 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 0, entries len: 0</span></div></div>
+<div class="log-entry">004145 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 0, entries len: 0
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 append entries from entries: []. Current log: [{0 <nil>}]</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 appended new entries. Final log: [{0 <nil>}]</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S1 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 0, entries len: 0</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 append entries from entries: []. Current log: [{0 <nil>}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 appended new entries. Final log: [{0 <nil>}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 0, VotedFor: 0, Term: 1</span></div></div>
+<div class="log-entry">004145 LOG2 S3 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 0, entries len: 0
+</div>
+<div class="log-entry">004145 INFO S4 append entries from entries: []. Current log: [{0 <nil>}]
+</div>
+<div class="log-entry">004145 INFO S3 append entries from entries: []. Current log: [{0 <nil>}]
+</div>
+<div class="log-entry">004145 INFO S3 appended new entries. Final log: [{0 <nil>}]
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 0, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div></div>
+<div class="log-entry">004145 INFO S4 appended new entries. Final log: [{0 <nil>}]
+</div>
+<div class="log-entry">004146 INFO S3, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-entry">004146 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 1 1 1 1], matchIndex: [0 0 0 0 0], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 1 1 1 1], matchIndex: [0 0 0 0 0], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 1 1 1 1], matchIndex: [0 0 0 0 0], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 1 1 1 1], matchIndex: [0 0 0 0 0], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">004570 LOG2 S3 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 0, entries len: 1
+</div>
+<div class="log-entry">004570 INFO S3 append entries from entries: [{1 10}]. Current log: [{0 <nil>}]
+</div>
+<div class="log-entry">004570 INFO S3 appended new entries. Final log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-entry">004570 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 0, entries len: 1
+</div>
+<div class="log-entry">004570 INFO S4 append entries from entries: [{1 10}]. Current log: [{0 <nil>}]
+</div>
+<div class="log-entry">004570 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-entry">004570 INFO S3, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-entry">004570 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S1 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 0, entries len: 1</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 append entries from entries: [{1 10}]. Current log: [{0 <nil>}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 appended new entries. Final log: [{0 <nil>} {1 10}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 0, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S2 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 0, entries len: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 append entries from entries: [{1 10}]. Current log: [{0 <nil>}]</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 appended new entries. Final log: [{0 <nil>} {1 10}]</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 0, VotedFor: 0, Term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">005149 LOG2 S3 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">005150 INFO S3 append entries from entries: []. Current log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S2 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0</span></div></div>
+<div class="log-entry">005150 INFO S3 appended new entries. Final log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 append entries from entries: []. Current log: [{0 <nil>} {1 10}]</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 appended new entries. Final log: [{0 <nil>} {1 10}]</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S1 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 append entries from entries: []. Current log: [{0 <nil>} {1 10}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 appended new entries. Final log: [{0 <nil>} {1 10}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 0, VotedFor: 0, Term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 0, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div></div>
+<div class="log-entry">005150 INFO S3, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-entry">005151 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">005151 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-entry">005151 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-entry">005151 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S2 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 append entries from entries: []. Current log: [{0 <nil>} {1 10}]</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 appended new entries. Final log: [{0 <nil>} {1 10}]</span></div></div>
+<div class="log-entry">006163 LOG2 S3 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">006163 INFO S3 append entries from entries: []. Current log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-entry">006163 INFO S3 appended new entries. Final log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-entry">006163 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">006163 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-entry">006163 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S1 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 append entries from entries: []. Current log: [{0 <nil>} {1 10}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 appended new entries. Final log: [{0 <nil>} {1 10}]</span></div><div class="log-entry"></div></div>
+<div class="log-entry">006164 INFO S3, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-entry">006164 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 0, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 0, VotedFor: 0, Term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S2 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 append entries from entries: []. Current log: [{0 <nil>} {1 10}]</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 appended new entries. Final log: [{0 <nil>} {1 10}]</span></div></div>
+<div class="log-entry">007165 LOG2 S3 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">007165 INFO S3 append entries from entries: []. Current log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-entry">007165 INFO S3 appended new entries. Final log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S1 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 append entries from entries: []. Current log: [{0 <nil>} {1 10}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 appended new entries. Final log: [{0 <nil>} {1 10}]</span></div><div class="log-entry"></div></div>
+<div class="log-entry">007164 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">007166 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-entry">007166 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-entry">007166 INFO S3, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 0, VotedFor: 0, Term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 0, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div></div>
+<div class="log-entry">007166 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">008170 LOG2 S3 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">008171 INFO S3 append entries from entries: []. Current log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-entry">008171 INFO S3 appended new entries. Final log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S2 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 append entries from entries: []. Current log: [{0 <nil>} {1 10}]</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 appended new entries. Final log: [{0 <nil>} {1 10}]</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 0, VotedFor: 0, Term: 1</span></div></div>
+<div class="log-entry">008172 INFO S3, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-entry">008171 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">008172 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-entry">008172 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S1 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 append entries from entries: []. Current log: [{0 <nil>} {1 10}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 appended new entries. Final log: [{0 <nil>} {1 10}]</span></div><div class="log-entry"></div></div>
+<div class="log-entry">008173 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 0, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">009178 LOG2 S3 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">009179 INFO S3 append entries from entries: []. Current log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-entry">009179 INFO S3 appended new entries. Final log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S2 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 append entries from entries: []. Current log: [{0 <nil>} {1 10}]</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 appended new entries. Final log: [{0 <nil>} {1 10}]</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S1 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 append entries from entries: []. Current log: [{0 <nil>} {1 10}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 appended new entries. Final log: [{0 <nil>} {1 10}]</span></div><div class="log-entry"></div></div>
+<div class="log-entry">009179 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">009180 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-entry">009181 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 0, VotedFor: 0, Term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 0, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div></div>
+<div class="log-entry">009181 INFO S3, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-entry">009181 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 2], matchIndex: [0 1 1 1 1], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">010106 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 1, prevLogTerm: 1, leaderCommit: 1, entries len: 1
+</div>
+<div class="log-entry">010107 INFO S4 append entries from entries: [{1 20}]. Current log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-entry">010107 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">010107 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">010180 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">010180 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">010181 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">010181 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">011186 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">011186 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">011186 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">011186 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">012194 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">012195 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">012195 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">012195 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">013196 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">013196 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">013196 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">013196 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 1, VotedFor: 1, Term: 2</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S1 BeginElection, Term: 2</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S1 RequestVote -> S4 (T2)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S1 RequestVote -> S0 (T2)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 1, VotedFor: 1, Term: 2</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S1 RequestVote -> S2 (T2)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S1 RequestVote -> S3 (T2)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 1, VotedFor: 2, Term: 2</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 BeginElection, Term: 2</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S4 (T2)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S0 (T2)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 1, VotedFor: 2, Term: 2</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S1 (T2)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S3 (T2)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">014204 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">014205 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">014205 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">014205 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-entry">014617 INFO S3, State: 1, VotedFor: 3, Term: 2
+</div>
+<div class="log-entry">014617 VOTE S3 BeginElection, Term: 2
+</div>
+<div class="log-entry">014618 VOTE S3 RequestVote -> S4 (T2)
+</div>
+<div class="log-entry">014618 INFO S3, State: 1, VotedFor: 3, Term: 2
+</div>
+<div class="log-entry">014619 VOTE S3 RequestVote -> S0 (T2)
+</div>
+<div class="log-entry">014619 VOTE S3 RequestVote -> S1 (T2)
+</div>
+<div class="log-entry">014619 VOTE S3 RequestVote -> S2 (T2)
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">015216 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">015216 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">015216 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">015216 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">016219 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">016220 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">016220 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">016220 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">017226 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">017226 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">017226 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">017227 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 1, VotedFor: 1, Term: 3</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S1 BeginElection, Term: 3</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S1 RequestVote -> S4 (T3)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S1 RequestVote -> S0 (T3)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S1 RequestVote -> S2 (T3)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S1 RequestVote -> S3 (T3)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 1, VotedFor: 1, Term: 3</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 1, VotedFor: 2, Term: 3</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 BeginElection, Term: 3</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S4 (T3)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S0 (T3)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 1, VotedFor: 2, Term: 3</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S1 (T3)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S3 (T3)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">018236 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">018236 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">018236 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">018237 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">019238 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">019238 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">019238 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">019238 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-entry">019592 INFO S3, State: 1, VotedFor: 3, Term: 3
+</div>
+<div class="log-entry">019592 VOTE S3 BeginElection, Term: 3
+</div>
+<div class="log-entry">019593 VOTE S3 RequestVote -> S4 (T3)
+</div>
+<div class="log-entry">019593 VOTE S3 RequestVote -> S0 (T3)
+</div>
+<div class="log-entry">019593 VOTE S3 RequestVote -> S1 (T3)
+</div>
+<div class="log-entry">019594 VOTE S3 RequestVote -> S2 (T3)
+</div>
+<div class="log-entry">019593 INFO S3, State: 1, VotedFor: 3, Term: 3
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">020244 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">020244 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">020244 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">020244 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">021254 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">021254 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">021254 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">021254 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 1, VotedFor: 2, Term: 4</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 BeginElection, Term: 4</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S4 (T4)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S0 (T4)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 1, VotedFor: 2, Term: 4</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S1 (T4)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S3 (T4)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">022259 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">022260 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">022260 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">022260 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">023270 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">023270 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">023270 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">023270 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 1, VotedFor: 1, Term: 4</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S1 BeginElection, Term: 4</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 1, VotedFor: 1, Term: 4</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S1 RequestVote -> S3 (T4)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S1 RequestVote -> S2 (T4)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S1 RequestVote -> S4 (T4)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S1 RequestVote -> S0 (T4)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">024269 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">024269 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">024270 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">024270 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-entry">025169 INFO S3, State: 1, VotedFor: 3, Term: 4
+</div>
+<div class="log-entry">025169 VOTE S3 BeginElection, Term: 4
+</div>
+<div class="log-entry">025169 VOTE S3 RequestVote -> S4 (T4)
+</div>
+<div class="log-entry">025169 VOTE S3 RequestVote -> S0 (T4)
+</div>
+<div class="log-entry">025170 VOTE S3 RequestVote -> S1 (T4)
+</div>
+<div class="log-entry">025170 INFO S3, State: 1, VotedFor: 3, Term: 4
+</div>
+<div class="log-entry">025170 VOTE S3 RequestVote -> S2 (T4)
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">025274 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">025274 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">025274 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">025275 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">026281 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">026281 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">026282 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">026282 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 1, VotedFor: 2, Term: 5</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 BeginElection, Term: 5</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S4 (T5)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S0 (T5)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S1 (T5)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 1, VotedFor: 2, Term: 5</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S3 (T5)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">027284 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">027285 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">027285 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">027285 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 1, VotedFor: 1, Term: 5</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S1 BeginElection, Term: 5</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S1 RequestVote -> S4 (T5)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S1 RequestVote -> S0 (T5)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S1 RequestVote -> S2 (T5)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S1 RequestVote -> S3 (T5)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 1, VotedFor: 1, Term: 5</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">028290 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">028290 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">028291 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">028291 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">029301 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">029301 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">029301 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">029302 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 2, VotedFor: 0, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S2 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S4 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S3 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #67a0b2">S0 AppendEntries -> S1 (T1) nextIndex: [1 2 2 2 3], matchIndex: [0 1 1 1 2], len log: 3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S2 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0</span></div></div>
+<div class="log-entry">030302 LOG2 S3 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S1 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0</span></div><div class="log-entry"></div></div>
+<div class="log-entry">030303 LOG2 S4 received AppendEntries from S0, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">030303 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 1, VotedFor: 2, Term: 5</span></div></div>
+<div class="log-entry">030304 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">030304 INFO S3, State: 1, VotedFor: 3, Term: 4
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 1, VotedFor: 1, Term: 5</span></div><div class="log-entry"></div></div>
+<div class="log-entry">030304 INFO S4, State: 0, VotedFor: 0, Term: 1
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 0, VotedFor: -1, Term: 5</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S4</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 0, VotedFor: -1, Term: 5</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 sends heartbeat to S3</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">034474 INFO S3, State: 1, VotedFor: 3, Term: 5
+</div>
+<div class="log-entry">034474 VOTE S3 BeginElection, Term: 5
+</div>
+<div class="log-entry">034475 VOTE S3 RequestVote -> S4 (T5)
+</div>
+<div class="log-entry">034475 VOTE S3 RequestVote -> S0 (T5)
+</div>
+<div class="log-entry">034477 INFO S3, State: 1, VotedFor: 3, Term: 5
+</div>
+<div class="log-entry">034477 VOTE S3 RequestVote -> S1 (T5)
+</div>
+<div class="log-entry">034479 INFO S3, State: 1, VotedFor: 3, Term: 5
+</div>
+<div class="log-entry">034479 VOTE S3 RequestVote -> S2 (T5)
+</div>
+<div class="log-entry">034479 INFO S3, State: 1, VotedFor: 3, Term: 5
+</div>
+<div class="log-entry">034480 INFO S3, State: 1, VotedFor: 3, Term: 5
+</div>
+<div class="log-entry">034482 INFO S3, State: 1, VotedFor: 3, Term: 5
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 1, VotedFor: 2, Term: 6</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 BeginElection, Term: 6</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S4 (T6)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S0 (T6)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S1 (T6)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S3 (T6)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 1, VotedFor: 2, Term: 6</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 1, VotedFor: 2, Term: 6</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 1, VotedFor: 2, Term: 6</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 sends heartbeat to S4</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S4 (T6) nextIndex: [2 2 2 2 2], matchIndex: [0 0 0 0 0], len log: 2</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 sends heartbeat to S0</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S0 (T6) nextIndex: [2 2 2 2 2], matchIndex: [0 0 0 0 0], len log: 2</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 sends heartbeat to S1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 sends heartbeat to S3</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S1 (T6) nextIndex: [2 2 2 2 2], matchIndex: [0 0 0 0 0], len log: 2</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S3 (T6) nextIndex: [2 2 2 2 2], matchIndex: [0 0 0 0 0], len log: 2</span></div></div>
+<div class="log-entry">035010 LOG2 S4 received AppendEntries from S2, with following args term: 6, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-entry">035011 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">035011 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #398280">S0 received AppendEntries from S2, with following args term: 6, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 append entries from entries: []. Current log: [{0 <nil>} {1 10} {1 20}]</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 appended new entries. Final log: [{0 <nil>} {1 10} {1 20}]</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S1 received AppendEntries from S2, with following args term: 6, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 append entries from entries: []. Current log: [{0 <nil>} {1 10}]</span></div><div class="log-entry"></div></div>
+<div class="log-entry">035012 LOG2 S3 received AppendEntries from S2, with following args term: 6, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries len: 0
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 0, VotedFor: -1, Term: 6</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">035012 INFO S4, State: 0, VotedFor: -1, Term: 6
+</div>
+<div class="log-entry">035012 INFO S3 append entries from entries: []. Current log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-entry">035012 INFO S3 appended new entries. Final log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 appended new entries. Final log: [{0 <nil>} {1 10}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 0, VotedFor: 2, Term: 6</span></div><div class="log-entry"></div></div>
+<div class="log-entry">035013 INFO S3, State: 0, VotedFor: 2, Term: 6
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S4 (T6) nextIndex: [2 2 2 2 2], matchIndex: [0 0 0 0 0], len log: 4</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S3 (T6) nextIndex: [2 2 2 2 2], matchIndex: [0 0 0 0 0], len log: 4</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S1 (T6) nextIndex: [2 2 2 2 2], matchIndex: [0 0 0 0 0], len log: 4</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S4 (T6) nextIndex: [2 2 2 2 2], matchIndex: [0 0 0 0 0], len log: 4</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S0 (T6) nextIndex: [2 2 2 2 2], matchIndex: [0 0 0 0 0], len log: 4</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S0 (T6) nextIndex: [2 2 2 2 2], matchIndex: [0 0 0 0 0], len log: 4</span></div></div>
+<div class="log-entry">035553 LOG2 S3 received AppendEntries from S2, with following args term: 6, prevLogIndex: 1, prevLogTerm: 1, leaderCommit: 1, entries len: 2
+</div>
+<div class="log-entry">035553 INFO S3 append entries from entries: [{6 30} {6 1000}]. Current log: [{0 <nil>} {1 10}]
+</div>
+<div class="log-entry">035553 INFO S3 appended new entries. Final log: [{0 <nil>} {1 10} {6 30} {6 1000}]
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S3 (T6) nextIndex: [2 2 2 2 2], matchIndex: [0 0 0 0 0], len log: 4</span></div></div>
+<div class="log-entry">035554 INFO S3, State: 0, VotedFor: 2, Term: 6
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #398280">S0 received AppendEntries from S2, with following args term: 6, prevLogIndex: 1, prevLogTerm: 1, leaderCommit: 1, entries len: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S1 received AppendEntries from S2, with following args term: 6, prevLogIndex: 1, prevLogTerm: 1, leaderCommit: 1, entries len: 2</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 append entries from entries: [{6 30} {6 1000}]. Current log: [{0 <nil>} {1 10} {1 20}]</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 append entries from entries: [{6 30} {6 1000}]. Current log: [{0 <nil>} {1 10}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 appended new entries. Final log: [{0 <nil>} {1 10} {6 30} {6 1000}]</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 appended new entries. Final log: [{0 <nil>} {1 10} {6 30} {6 1000}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #398280">S0 received AppendEntries from S2, with following args term: 6, prevLogIndex: 1, prevLogTerm: 1, leaderCommit: 1, entries len: 2</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 append entries from entries: [{6 30} {6 1000}]. Current log: [{0 <nil>} {1 10} {6 30} {6 1000}]</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S1 (T6) nextIndex: [2 2 2 2 2], matchIndex: [0 0 0 0 0], len log: 4</span></div></div>
+<div class="log-entry">035553 LOG2 S4 received AppendEntries from S2, with following args term: 6, prevLogIndex: 1, prevLogTerm: 1, leaderCommit: 1, entries len: 2
+</div>
+<div class="log-entry">035556 INFO S4 append entries from entries: [{6 30} {6 1000}]. Current log: [{0 <nil>} {1 10} {1 20}]
+</div>
+<div class="log-entry">035556 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {6 30} {6 1000}]
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 appended new entries. Final log: [{0 <nil>} {1 10} {6 30} {6 1000}]</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">035557 LOG2 S3 received AppendEntries from S2, with following args term: 6, prevLogIndex: 1, prevLogTerm: 1, leaderCommit: 1, entries len: 2
+</div>
+<div class="log-entry">035557 INFO S3 append entries from entries: [{6 30} {6 1000}]. Current log: [{0 <nil>} {1 10} {6 30} {6 1000}]
+</div>
+<div class="log-entry">035557 INFO S3 appended new entries. Final log: [{0 <nil>} {1 10} {6 30} {6 1000}]
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 0, VotedFor: -1, Term: 6</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 0, VotedFor: -1, Term: 6</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">035557 INFO S4, State: 0, VotedFor: -1, Term: 6
+</div>
+<div class="log-entry">035557 LOG2 S4 received AppendEntries from S2, with following args term: 6, prevLogIndex: 1, prevLogTerm: 1, leaderCommit: 1, entries len: 2
+</div>
+<div class="log-entry">035558 INFO S4 append entries from entries: [{6 30} {6 1000}]. Current log: [{0 <nil>} {1 10} {6 30} {6 1000}]
+</div>
+<div class="log-entry">035558 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {6 30} {6 1000}]
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 0, VotedFor: 2, Term: 6</span></div><div class="log-entry"></div></div>
+<div class="log-entry">035558 INFO S3, State: 0, VotedFor: 2, Term: 6
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S1 received AppendEntries from S2, with following args term: 6, prevLogIndex: 1, prevLogTerm: 1, leaderCommit: 1, entries len: 2</span></div><div class="log-entry"></div></div>
+<div class="log-entry">035558 INFO S4, State: 0, VotedFor: -1, Term: 6
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 append entries from entries: [{6 30} {6 1000}]. Current log: [{0 <nil>} {1 10} {6 30} {6 1000}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 appended new entries. Final log: [{0 <nil>} {1 10} {6 30} {6 1000}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 0, VotedFor: 2, Term: 6</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 1, VotedFor: 2, Term: 7</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 BeginElection, Term: 7</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S4 (T7)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S0 (T7)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S1 (T7)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 1, VotedFor: 2, Term: 7</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S3 (T7)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 1, VotedFor: 2, Term: 7</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 1, VotedFor: 2, Term: 7</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 2, VotedFor: 2, Term: 7</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 sends heartbeat to S3</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 sends heartbeat to S0</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S3 (T7) nextIndex: [4 4 4 4 4], matchIndex: [0 0 0 0 0], len log: 4</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S0 (T7) nextIndex: [4 4 4 4 4], matchIndex: [0 0 0 0 0], len log: 4</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 sends heartbeat to S4</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S4 (T7) nextIndex: [4 4 4 4 4], matchIndex: [0 0 0 0 0], len log: 4</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 sends heartbeat to S1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S1 (T7) nextIndex: [4 4 4 4 4], matchIndex: [0 0 0 0 0], len log: 4</span></div></div>
+<div class="log-entry">039135 LOG2 S3 received AppendEntries from S2, with following args term: 7, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 3, entries len: 0
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #398280">S0 received AppendEntries from S2, with following args term: 7, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 3, entries len: 0</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">039135 LOG2 S4 received AppendEntries from S2, with following args term: 7, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 3, entries len: 0
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 append entries from entries: []. Current log: [{0 <nil>} {1 10} {6 30} {6 1000}]</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">039135 INFO S3 append entries from entries: []. Current log: [{0 <nil>} {1 10} {6 30} {6 1000}]
+</div>
+<div class="log-entry">039135 INFO S4 append entries from entries: []. Current log: [{0 <nil>} {1 10} {6 30} {6 1000}]
+</div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 appended new entries. Final log: [{0 <nil>} {1 10} {6 30} {6 1000}]</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">039136 INFO S3 appended new entries. Final log: [{0 <nil>} {1 10} {6 30} {6 1000}]
+</div>
+<div class="log-entry">039136 INFO S4 appended new entries. Final log: [{0 <nil>} {1 10} {6 30} {6 1000}]
+</div>
+<div class="log-entry">039136 INFO S3, State: 0, VotedFor: 2, Term: 7
+</div>
+<div class="log-entry">039137 INFO S4, State: 0, VotedFor: 2, Term: 7
+</div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S1 received AppendEntries from S2, with following args term: 7, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 3, entries len: 0</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 append entries from entries: []. Current log: [{0 <nil>} {1 10} {6 30} {6 1000}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 appended new entries. Final log: [{0 <nil>} {1 10} {6 30} {6 1000}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 0, VotedFor: 2, Term: 7</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 0, VotedFor: 2, Term: 7</span></div><div class="log-entry"></div></div>
+<div class="log-entry">PASS
+</div>
+</body>
+</html>

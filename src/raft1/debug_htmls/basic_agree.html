@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <style>
+        body { 
+            background-color: #1e1e1e; 
+            color: #ffffff; 
+            font-family: monospace;
+            padding: 20px;
+        }
+        .log-container {
+            display: grid;
+            grid-template-columns: repeat(var(--n-columns), 1fr);
+            gap: 0;
+            border: 1px dotted #444;
+        }
+        .log-entry {
+            padding: 8px;
+            margin: 0;
+            white-space: pre-wrap;
+            border-bottom: 1px dotted #444;
+            border-right: 1px dotted #444;
+            min-height: 1.2em;
+        }
+        .log-entry:last-child {
+            border-right: none;
+        }
+        .log-container:last-child .log-entry {
+            border-bottom: none;
+        }
+        .timestamp {
+            color: #888888;
+        }
+        /* Single column log entries */
+        .log-entry:only-child {
+            border: none;
+            border-bottom: 1px dotted #444;
+        }
+        .log-entry:only-child:last-child {
+            border-bottom: none;
+        }
+    </style>
+    <style>:root { --n-columns: 3; }</style>
+</head>
+<body>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 0, VotedFor: -1, Term: 0</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 0, VotedFor: -1, Term: 0</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 0, VotedFor: -1, Term: 0</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 1, VotedFor: 2, Term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 BeginElection, Term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S1 (T1)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 1, VotedFor: 2, Term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 RequestVote -> S0 (T1)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 sends heartbeat to S1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 2, VotedFor: 2, Term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 sends heartbeat to S0</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S0 (T1)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S1 (T1)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #398280">S0 received AppendEntries from S2, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 0, entries: []</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 append entries from entries: [], starting at index 0 up to end</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 appended new entries. Final log: [{0 <nil>}]</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S1 received AppendEntries from S2, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 0, entries: []</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 append entries from entries: [], starting at index 0 up to end</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 appended new entries. Final log: [{0 <nil>}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 0, VotedFor: 2, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 0, VotedFor: 2, Term: 1</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>}], matchIndex: [0 0 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>}], matchIndex: [0 0 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S1 (T1)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 0)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S0 (T1)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100}], matchIndex: [0 0 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #398280">S0 received AppendEntries from S2, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 0, entries: [{1 100}]</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 append entries from entries: [{1 100}], starting at index 0 up to end</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S1 received AppendEntries from S2, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 0, entries: [{1 100}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 appended new entries. Final log: [{0 <nil>} {1 100}]</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 append entries from entries: [{1 100}], starting at index 0 up to end</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 appended new entries. Final log: [{0 <nil>} {1 100}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 0, VotedFor: 2, Term: 1</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 0, VotedFor: 2, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100}], matchIndex: [1 1 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [0, 1)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [1, 1)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100}], matchIndex: [1 1 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [1, 1)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100}], matchIndex: [1 1 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100}], matchIndex: [1 1 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [1, 1)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100}], matchIndex: [1 1 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [1, 1)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [1, 1)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 0)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100}], matchIndex: [1 1 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 0)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 2, VotedFor: 2, Term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 sends heartbeat to S1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S1 (T1)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 sends heartbeat to S0</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S0 (T1)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S1 received AppendEntries from S2, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries: []</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 append entries from entries: [], starting at index 0 up to end</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #398280">S0 received AppendEntries from S2, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries: []</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 appended new entries. Final log: [{0 <nil>} {1 100}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 append entries from entries: [], starting at index 0 up to end</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 appended new entries. Final log: [{0 <nil>} {1 100}]</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 0, VotedFor: 2, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 0, VotedFor: 2, Term: 1</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [0, 1)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [1, 1)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [0, 1)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100}], matchIndex: [1 1 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S1 (T1)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S0 (T1)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S1 received AppendEntries from S2, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries: [{1 200}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 append entries from entries: [{1 200}], starting at index 0 up to end</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 appended new entries. Final log: [{0 <nil>} {1 100} {1 200}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #398280">S0 received AppendEntries from S2, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 1, entries: [{1 200}]</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 append entries from entries: [{1 200}], starting at index 0 up to end</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 appended new entries. Final log: [{0 <nil>} {1 100} {1 200}]</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 0, VotedFor: 2, Term: 1</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 0, VotedFor: 2, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100} {1 200}], matchIndex: [1 1 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [1, 2)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [1, 1)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [1, 1)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100} {1 200}], matchIndex: [1 1 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [1, 1)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [2, 2)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [1, 1)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [1, 1)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100} {1 200}], matchIndex: [1 1 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [2, 2)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [1, 1)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [1, 1)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [1, 1)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100} {1 200}], matchIndex: [1 1 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [2, 2)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [2, 2)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100} {1 200}], matchIndex: [1 1 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [1, 1)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [1, 1)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [1, 1)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100} {1 200}], matchIndex: [1 1 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [1, 1)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [2, 2)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100} {1 200}], matchIndex: [1 1 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [1, 1)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [2, 2)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [1, 1)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [1, 1)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100} {1 200}], matchIndex: [1 1 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [1, 1)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [2, 2)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 2, VotedFor: 2, Term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 sends heartbeat to S1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S1 (T1)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 sends heartbeat to S0</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S0 (T1)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S1 received AppendEntries from S2, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 2, entries: []</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 append entries from entries: [], starting at index 0 up to end</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #398280">S0 received AppendEntries from S2, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 2, entries: []</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 appended new entries. Final log: [{0 <nil>} {1 100} {1 200}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 append entries from entries: [], starting at index 0 up to end</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 appended new entries. Final log: [{0 <nil>} {1 100} {1 200}]</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 0, VotedFor: 2, Term: 1</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 0, VotedFor: 2, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [1, 2)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [2, 2)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [1, 2)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100} {1 200}], matchIndex: [1 1 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100} {1 200}], matchIndex: [1 1 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [2, 2)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [2, 2)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [2, 2)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S1 (T1)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S0 (T1)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S1 received AppendEntries from S2, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 2, entries: [{1 200} {1 300}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 append entries from entries: [{1 200} {1 300}], starting at index 1 up to end</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 appended new entries. Final log: [{0 <nil>} {1 100} {1 200} {1 300}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #398280">S0 received AppendEntries from S2, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 2, entries: [{1 200} {1 300}]</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 append entries from entries: [{1 200} {1 300}], starting at index 1 up to end</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 appended new entries. Final log: [{0 <nil>} {1 100} {1 200} {1 300}]</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 0, VotedFor: 2, Term: 1</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 0, VotedFor: 2, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [2, 2)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100} {1 200} {1 300}], matchIndex: [2 2 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [2, 3)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [2, 2)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [3, 3)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [2, 2)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100} {1 200} {1 300}], matchIndex: [2 2 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [2, 2)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [2, 2)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [3, 3)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [2, 2)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100} {1 200} {1 300}], matchIndex: [2 2 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [3, 3)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [2, 2)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100} {1 200} {1 300}], matchIndex: [2 2 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [2, 2)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [2, 2)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100} {1 200} {1 300}], matchIndex: [2 2 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [2, 2)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [3, 3)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100} {1 200} {1 300}], matchIndex: [2 2 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [2, 2)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [3, 3)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [2, 2)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [2, 2)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [2, 2)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100} {1 200} {1 300}], matchIndex: [2 2 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [3, 3)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [3, 3)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [2, 2)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [2, 2)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100} {1 200} {1 300}], matchIndex: [2 2 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2, State: 2, VotedFor: 2, Term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 sends heartbeat to S1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S1 (T1)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S2 sends heartbeat to S0</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #67a0b2">S2 AppendEntries -> S0 (T1)</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #398280">S1 received AppendEntries from S2, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 3, entries: []</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #398280">S0 received AppendEntries from S2, with following args term: 1, prevLogIndex: 0, prevLogTerm: 0, leaderCommit: 3, entries: []</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 append entries from entries: [], starting at index 0 up to end</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1 appended new entries. Final log: [{0 <nil>} {1 100} {1 200} {1 300}]</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 append entries from entries: [], starting at index 0 up to end</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0 appended new entries. Final log: [{0 <nil>} {1 100} {1 200} {1 300}]</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #ffffff">S1, State: 0, VotedFor: 2, Term: 1</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #ffffff">S0, State: 0, VotedFor: 2, Term: 1</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [2, 3)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [3, 3)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [2, 3)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100} {1 200} {1 300}], matchIndex: [2 2 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 trying commit index. Info log: [{0 <nil>} {1 100} {1 200} {1 300}], matchIndex: [2 2 0], term: 1</span></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S1 is committing entries index [3, 3)</span></div><div class="log-entry"></div></div>
+<div class="log-container"><div class="log-entry"></div><div class="log-entry"></div><div class="log-entry"><span style="color: #98719f">S2 is committing entries index [3, 3)</span></div></div>
+<div class="log-container"><div class="log-entry"><span style="color: #98719f">S0 is committing entries index [3, 3)</span></div><div class="log-entry"></div><div class="log-entry"></div></div>
+<div class="log-entry">PASS
+</div>
+</body>
+</html>
