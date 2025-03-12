@@ -7,14 +7,14 @@ package raft
 // Make() creates a new raft peer that implements the raft interface.
 
 import (
-	//	"bytes"
+	"bytes"
 	"fmt"
 	"math/rand"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	//	"6.5840/labgob"
+	"6.5840/labgob"
 	"6.5840/labrpc"
 	"6.5840/raftapi"
 	tester "6.5840/tester1"
@@ -125,14 +125,15 @@ func (rf *Raft) GetState() (int, bool) {
 // after you've implemented snapshots, pass the current snapshot
 // (or nil if there's not yet a snapshot).
 func (rf *Raft) persist() {
-	// Your code here (3C).
-	// Example:
-	// w := new(bytes.Buffer)
-	// e := labgob.NewEncoder(w)
-	// e.Encode(rf.xxx)
-	// e.Encode(rf.yyy)
-	// raftstate := w.Bytes()
-	// rf.persister.Save(raftstate, nil)
+	w := new(bytes.Buffer)
+	e := labgob.NewEncoder(w)
+
+	e.Encode(rf.currentTerm)
+	e.Encode(rf.votedFor)
+	e.Encode(rf.log)
+
+	raftstate := w.Bytes()
+	rf.persister.Save(raftstate, nil)
 }
 
 // restore previously persisted state.
@@ -140,19 +141,25 @@ func (rf *Raft) readPersist(data []byte) {
 	if data == nil || len(data) < 1 { // bootstrap without any state?
 		return
 	}
-	// Your code here (3C).
-	// Example:
-	// r := bytes.NewBuffer(data)
-	// d := labgob.NewDecoder(r)
-	// var xxx
-	// var yyy
-	// if d.Decode(&xxx) != nil ||
-	//    d.Decode(&yyy) != nil {
-	//   error...
-	// } else {
-	//   rf.xxx = xxx
-	//   rf.yyy = yyy
-	// }
+
+	r := bytes.NewBuffer(data)
+	d := labgob.NewDecoder(r)
+	var currentTerm int
+	var voteFor int
+	var log []LogEntry
+
+	if d.Decode(&currentTerm) != nil ||
+		d.Decode(&voteFor) != nil ||
+		d.Decode(&log) != nil {
+		DebugPrint(dError, "S%v Error in readPersist", rf.me)
+
+	} else {
+		rf.mu.Lock()
+		rf.currentTerm = currentTerm
+		rf.votedFor = voteFor
+		rf.log = log
+		rf.mu.Unlock()
+	}
 }
 
 // how many bytes in Raft's persisted log?
@@ -181,6 +188,7 @@ func (rf *Raft) toFollower(term int) {
 	rf.state = Follower
 	rf.currentTerm = term
 	rf.votedFor = NULL
+	rf.persist()
 }
 
 // Transform server into candidate state
@@ -190,6 +198,7 @@ func (rf *Raft) toCandidate() {
 	rf.state = Candidate
 	rf.currentTerm++
 	rf.votedFor = rf.me
+	rf.persist()
 }
 
 // Transform server into Leader state
@@ -273,11 +282,9 @@ func (rf *Raft) CheckElection() {
 }
 
 func (rf *Raft) PushCommitIndex() {
-	waitTime := 10 * time.Millisecond
+	waitTime := 1 * time.Millisecond
 
 	for !rf.killed() {
-
-		time.Sleep(waitTime)
 
 		rf.mu.Lock()
 
@@ -295,16 +302,15 @@ func (rf *Raft) PushCommitIndex() {
 		}
 
 		rf.mu.Unlock()
+		time.Sleep(waitTime)
 
 	}
 }
 
 func (rf *Raft) SendApplyCh() {
-	waitTime := 10 * time.Millisecond
+	waitTime := 1 * time.Millisecond
 
 	for !rf.killed() {
-
-		time.Sleep(waitTime)
 
 		rf.mu.Lock()
 
@@ -321,6 +327,7 @@ func (rf *Raft) SendApplyCh() {
 			rf.applyCh <- msg
 		}
 		rf.mu.Unlock()
+		time.Sleep(waitTime)
 
 	}
 }
@@ -354,6 +361,8 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
 		Command: command,
 	}
 	rf.log = append(rf.log, newEntry)
+	rf.persist()
+
 	rf.mu.Unlock()
 
 	// Send AppendEntries to other servers
@@ -409,8 +418,6 @@ func Make(peers []*labrpc.ClientEnd, me int,
 	rf.lastApplied = 0
 	rf.applyCh = applyCh
 
-	rf.nextIndex = make([]int, len(peers))
-	rf.matchIndex = make([]int, len(peers))
 	rf.majority = int32(len(peers) / 2)
 	rf.state = Follower
 	rf.receivedCh = make(chan bool, 1)

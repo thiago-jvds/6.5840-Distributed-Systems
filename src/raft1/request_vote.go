@@ -68,6 +68,7 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 		reply.VoteGranted = true
 		rf.votedFor = args.CandidateId
 		rf.state = Follower
+		rf.persist()
 
 	} else {
 		reply.VoteGranted = false

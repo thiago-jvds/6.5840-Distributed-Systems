@@ -3,3 +3,5 @@ pkg/
 .DS_Store
 a[1-9]*.txt
 q[1-9]*.txt
+src/raft1/debug_htmls/*
+*.log

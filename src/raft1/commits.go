@@ -9,8 +9,9 @@ func (rf *Raft) sendHeartbeatsAndNewEntries() {
 		}
 
 		go func(server int) {
+
 			// retry indefinetely
-			for {
+			for !rf.killed() {
 				// create args
 				rf.mu.Lock()
 
@@ -54,7 +55,9 @@ func (rf *Raft) sendHeartbeatsAndNewEntries() {
 						// If successful: update nextIndex and matchIndex for
 						// follower (§5.3)
 					} else if reply.Success {
-						rf.matchIndex[server] = args.PrevLogIndex + len(entries)
+						if args.PrevLogIndex+len(entries) > rf.matchIndex[server] {
+							rf.matchIndex[server] = args.PrevLogIndex + len(entries)
+						}
 						rf.nextIndex[server] = rf.matchIndex[server] + 1
 						rf.mu.Unlock()
 						return
@@ -62,7 +65,30 @@ func (rf *Raft) sendHeartbeatsAndNewEntries() {
 						// If AppendEntries fails because of log inconsistency:
 						// decrement nextIndex and retry (§5.3)
 					} else if !reply.Success {
-						rf.nextIndex[server] = rf.nextIndex[server] - 1
+
+						// Case 3: follower's log is too short:
+						if reply.XTerm == -1 {
+							rf.nextIndex[server] = reply.XLen
+						} else {
+
+							// try to find the conflictTerm in log
+							finalIdx := len(rf.log) - 1
+							for ; finalIdx >= 0; finalIdx-- {
+								if rf.log[finalIdx].Term == reply.XTerm {
+									break
+								}
+							}
+
+							// Case 1: leader doesn't have XTerm:
+							if finalIdx == -1 {
+								rf.nextIndex[server] = reply.XIndex
+
+								// Case 2: leader has XTerm:
+							} else {
+								rf.nextIndex[server] = finalIdx + 1
+							}
+
+						}
 						rf.mu.Unlock()
 
 					}
@@ -75,7 +101,7 @@ func (rf *Raft) sendHeartbeatsAndNewEntries() {
 }
 
 func (rf *Raft) isMajority(N int) bool {
-	tot := int32(1) // count yourself
+	tot := int32(1)
 	for i := range len(rf.peers) {
 		if i == rf.me {
 			continue

@@ -28,6 +28,15 @@ type AppendEntriesReply struct {
 	// true if follower contained entry matching
 	// prevLogIndex and prevLogTerm
 	Success bool
+
+	//  term in the conflicting entry (if any)
+	XTerm int
+
+	// index of first entry with that term (if any)
+	XIndex int
+
+	// log length
+	XLen int
 }
 
 // Invoked by leader to replicate log entries (§5.3); also used as
@@ -63,6 +72,9 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 
 	reply.Success = false
 	reply.Term = rf.currentTerm
+	reply.XIndex = 0
+	reply.XTerm = -1
+	reply.XLen = len(rf.log)
 
 	// 1. Reply false if term < currentTerm (§5.1)
 	if args.Term < rf.currentTerm {
@@ -74,12 +86,30 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	// 2. Reply false if log doesn’t contain an entry at prevLogIndex
 	// whose term matches prevLogTerm (§5.3)
 	checkPrevLogIndexTerm := -1
-	if 0 <= args.PrevLogIndex && args.PrevLogIndex < len(rf.log) {
+	if args.PrevLogIndex < len(rf.log) {
 		checkPrevLogIndexTerm = rf.log[args.PrevLogIndex].Term
 	}
 
 	if checkPrevLogIndexTerm != args.PrevLogTerm {
+		reply.XIndex = len(rf.log)
 		reply.Success = false
+
+		// if there exists term with conflict
+		if checkPrevLogIndexTerm != -1 {
+
+			reply.XTerm = checkPrevLogIndexTerm
+
+			for idx := 0; idx < len(rf.log); idx++ {
+
+				// found earliesy conflict index
+				if rf.log[idx].Term == reply.XTerm {
+					reply.XIndex = idx
+					break
+				}
+
+			}
+
+		}
 		return
 	}
 
@@ -126,6 +156,7 @@ end:
 	if args.LeaderCommit > rf.commitIndex {
 		rf.commitIndex = min(args.LeaderCommit, len(rf.log)-1)
 	}
+	rf.persist()
 
 }
 
