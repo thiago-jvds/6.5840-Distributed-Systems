@@ -11,7 +11,7 @@ import (
 type Clerk struct {
 	clnt    *tester.Clnt
 	servers []string
-	leader  int // last successful leader (index into servers[])
+	// You will have to modify this struct.
 }
 
 func MakeClerk(clnt *tester.Clnt, servers []string) *Clerk {
@@ -19,20 +19,27 @@ func MakeClerk(clnt *tester.Clnt, servers []string) *Clerk {
 	return ck
 }
 
-func (ck *Clerk) Get(cid shardcfg.Tnum, key string, n shardcfg.Tnum) (string, rpc.Tversion, rpc.Err) {
+func (ck *Clerk) Get(key string) (string, rpc.Tversion, rpc.Err) {
 	// Your code here
 	return "", 0, ""
 }
 
-func (ck *Clerk) Put(key string, value string, version rpc.Tversion, n shardcfg.Tnum) (bool, rpc.Err) {
+func (ck *Clerk) Put(key string, value string, version rpc.Tversion) rpc.Err {
 	// Your code here
-	return false, ""
+	return ""
 }
 
-func (ck *Clerk) Freeze(s shardcfg.Tshid, num shardcfg.Tnum) ([]byte, rpc.Err) {
+func (ck *Clerk) FreezeShard(s shardcfg.Tshid, num shardcfg.Tnum) ([]byte, rpc.Err) {
+	// Your code here
 	return nil, ""
 }
 
 func (ck *Clerk) InstallShard(s shardcfg.Tshid, state []byte, num shardcfg.Tnum) rpc.Err {
+	// Your code here
+	return ""
+}
+
+func (ck *Clerk) DeleteShard(s shardcfg.Tshid, num shardcfg.Tnum) rpc.Err {
+	// Your code here
 	return ""
 }
