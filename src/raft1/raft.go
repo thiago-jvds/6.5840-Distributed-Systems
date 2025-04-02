@@ -96,6 +96,16 @@ type Raft struct {
 
 	// Apply channel to send commit messages
 	applyCh chan raftapi.ApplyMsg
+
+	// index of the
+	// last entry in the log that the snapshot replaces
+	lastIncludedIndex int
+
+	// Snapshot last included term
+	lastIncludedTerm int
+
+	// Snapshot
+	snapshot []byte
 }
 
 func (rf *Raft) sendAck() {
@@ -131,9 +141,11 @@ func (rf *Raft) persist() {
 	e.Encode(rf.currentTerm)
 	e.Encode(rf.votedFor)
 	e.Encode(rf.log)
+	e.Encode(rf.lastIncludedIndex)
+	e.Encode(rf.lastIncludedTerm)
 
 	raftstate := w.Bytes()
-	rf.persister.Save(raftstate, nil)
+	rf.persister.Save(raftstate, rf.snapshot)
 }
 
 // restore previously persisted state.
@@ -147,10 +159,14 @@ func (rf *Raft) readPersist(data []byte) {
 	var currentTerm int
 	var voteFor int
 	var log []LogEntry
+	var lastIncludedIndex int
+	var lastIncludedTerm int
 
 	if d.Decode(&currentTerm) != nil ||
 		d.Decode(&voteFor) != nil ||
-		d.Decode(&log) != nil {
+		d.Decode(&log) != nil ||
+		d.Decode(&lastIncludedIndex) != nil ||
+		d.Decode(&lastIncludedTerm) != nil {
 		DebugPrint(dError, "S%v Error in readPersist", rf.me)
 
 	} else {
@@ -158,6 +174,8 @@ func (rf *Raft) readPersist(data []byte) {
 		rf.currentTerm = currentTerm
 		rf.votedFor = voteFor
 		rf.log = log
+		rf.lastIncludedIndex = lastIncludedIndex
+		rf.lastIncludedTerm = lastIncludedTerm
 		rf.mu.Unlock()
 	}
 }
@@ -174,7 +192,27 @@ func (rf *Raft) PersistBytes() int {
 // service no longer needs the log through (and including)
 // that index. Raft should now trim its log as much as possible.
 func (rf *Raft) Snapshot(index int, snapshot []byte) {
-	// Your code here (3D).
+	rf.mu.Lock()
+	defer rf.mu.Unlock()
+
+	// if snapshot is lagging
+	if index <= rf.lastIncludedIndex {
+		return
+	}
+	// Once a
+	// server completes writing a snapshot, it may delete all log
+	// entries up through the last included index, as well as any
+	// prior snapshot
+	temp := make([]LogEntry, 0)
+	rf.log = append(temp, rf.log[index-rf.lastIncludedIndex:]...)
+
+	lastIncludedEntry := rf.log[index]
+
+	rf.snapshot = snapshot
+	rf.lastIncludedIndex = index
+	rf.lastIncludedTerm = lastIncludedEntry.Term
+
+	rf.persist()
 
 }
 
@@ -416,6 +454,7 @@ func Make(peers []*labrpc.ClientEnd, me int,
 
 	rf.commitIndex = 0
 	rf.lastApplied = 0
+	rf.lastIncludedIndex = 0
 	rf.applyCh = applyCh
 
 	rf.majority = int32(len(peers) / 2)
