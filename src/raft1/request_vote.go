@@ -31,8 +31,8 @@ type RequestVoteReply struct {
 //
 // Returns true if candidate's log is at least up-to-date, else false
 func (rf *Raft) IsAtLeastUpToDate(args *RequestVoteArgs) bool {
-	receiverLastIndex := len(rf.log) - 1
-	receiverLastLogTerm := rf.log[receiverLastIndex].Term
+	receiverLastIndex := rf.getTotalLogLen() - 1
+	receiverLastLogTerm := rf.getAtIndex(receiverLastIndex).Term
 
 	candidateLastIndex := args.LastLogIndex
 	candidateLastLogTerm := args.LastLogTerm

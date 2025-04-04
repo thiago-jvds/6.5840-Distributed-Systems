@@ -60,6 +60,7 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	defer rf.mu.Unlock()
 
 	DebugPrint(dLog2, "S%v received AppendEntries from S%v, with following args term: %v, prevLogIndex: %v, prevLogTerm: %v, leaderCommit: %v, entries len: %v", rf.me, args.LeaderId, args.Term, args.PrevLogIndex, args.PrevLogTerm, args.LeaderCommit, len(args.Entries))
+	DPrintf("[APPENDENTRIES] S%v received AppendEntries from S%v, following stats currentTerm: %d, lastIncludedIndex: %d, lastIndex: %d", rf.me, args.LeaderId, rf.currentTerm, rf.lastIncludedIndex, rf.getTotalLogLen()-1)
 
 	// If RPC request or response contains term T > currentTerm:
 	// set currentTerm = T, convert to follower (§5.1)
@@ -74,7 +75,7 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	reply.Term = rf.currentTerm
 	reply.XIndex = 0
 	reply.XTerm = -1
-	reply.XLen = len(rf.log)
+	reply.XLen = rf.getTotalLogLen()
 
 	// 1. Reply false if term < currentTerm (§5.1)
 	if args.Term < rf.currentTerm {
@@ -86,12 +87,12 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	// 2. Reply false if log doesn’t contain an entry at prevLogIndex
 	// whose term matches prevLogTerm (§5.3)
 	checkPrevLogIndexTerm := -1
-	if args.PrevLogIndex < len(rf.log) {
-		checkPrevLogIndexTerm = rf.log[args.PrevLogIndex].Term
+	if args.PrevLogIndex >= rf.lastIncludedIndex && args.PrevLogIndex < rf.getTotalLogLen() {
+		checkPrevLogIndexTerm = rf.getAtIndex(args.PrevLogIndex).Term
 	}
 
 	if checkPrevLogIndexTerm != args.PrevLogTerm {
-		reply.XIndex = len(rf.log)
+		reply.XIndex = rf.getTotalLogLen()
 		reply.Success = false
 
 		// if there exists term with conflict
@@ -99,10 +100,10 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 
 			reply.XTerm = checkPrevLogIndexTerm
 
-			for idx := 0; idx < len(rf.log); idx++ {
+			for idx := rf.lastIncludedIndex; idx < rf.getTotalLogLen(); idx++ {
 
 				// found earliesy conflict index
-				if rf.log[idx].Term == reply.XTerm {
+				if rf.getAtIndex(idx).Term == reply.XTerm {
 					reply.XIndex = idx
 					break
 				}
@@ -131,7 +132,7 @@ loop:
 	existingIndex++
 
 	// valid log index and terms for new entry match -> go to next entry
-	if existingIndex < len(rf.log) && rf.log[existingIndex].Term == args.Entries[newIndex].Term {
+	if existingIndex < rf.getTotalLogLen() && rf.getAtIndex(existingIndex).Term == args.Entries[newIndex].Term {
 		newIndex++
 		goto loop
 	}
@@ -139,13 +140,14 @@ loop:
 	// 3. If an existing entry conflicts with a new one (same index
 	// but different terms), delete the existing entry and all that
 	// follow it (§5.3)
-	if existingIndex < len(rf.log) && rf.log[existingIndex].Term != args.Entries[newIndex].Term {
-		rf.log = rf.log[:existingIndex]
+	if existingIndex < rf.getTotalLogLen() && rf.getAtIndex(existingIndex).Term != args.Entries[newIndex].Term {
+		rf.log = rf.log[:existingIndex-rf.lastIncludedIndex]
 	}
 
 	// 4. Append any new entries not already in the log
 	// if it got here, existingIndex is out-of-bounds or terms don't match starting on newIndex
 	rf.log = append(rf.log, args.Entries[newIndex:]...)
+	rf.persist()
 
 end:
 
@@ -154,9 +156,8 @@ end:
 	// 5. If leaderCommit > commitIndex, set commitIndex =
 	// min(leaderCommit, index of last new entry)
 	if args.LeaderCommit > rf.commitIndex {
-		rf.commitIndex = min(args.LeaderCommit, len(rf.log)-1)
+		rf.commitIndex = min(args.LeaderCommit, rf.getTotalLogLen()-1)
 	}
-	rf.persist()
 
 }
 

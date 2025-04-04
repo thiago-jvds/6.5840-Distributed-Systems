@@ -6,8 +6,10 @@ func (rf *Raft) beginElection() {
 	rf.mu.Lock()
 	DebugPrint(dVote, "S%d BeginElection, Term: %d", rf.me, rf.currentTerm)
 
-	lastLogIndex := len(rf.log) - 1
-	lastLogTerm := rf.log[lastLogIndex].Term
+	DPrintf("[BEGINELECTION] S%d BeginElection, Term: %d", rf.me, rf.currentTerm)
+
+	lastLogIndex := rf.getTotalLogLen() - 1
+	lastLogTerm := rf.getAtIndex(lastLogIndex).Term
 
 	args := RequestVoteArgs{
 		Term:         rf.currentTerm,

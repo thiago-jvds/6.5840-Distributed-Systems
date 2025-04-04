@@ -176,6 +176,7 @@ func (rf *Raft) readPersist(data []byte) {
 		rf.log = log
 		rf.lastIncludedIndex = lastIncludedIndex
 		rf.lastIncludedTerm = lastIncludedTerm
+		// rf.commitIndex, rf.lastApplied = rf.lastIncludedIndex, rf.lastIncludedIndex
 		rf.mu.Unlock()
 	}
 }
@@ -199,19 +200,20 @@ func (rf *Raft) Snapshot(index int, snapshot []byte) {
 	if index <= rf.lastIncludedIndex {
 		return
 	}
+
+	DPrintf("SNAPSHOT: at index: %d, S%d: State: %d, VotedFor: %d, Term: %d, LastIncludedIndex: %d", index, rf.me, rf.state, rf.votedFor, rf.currentTerm, rf.lastIncludedIndex)
+
 	// Once a
 	// server completes writing a snapshot, it may delete all log
 	// entries up through the last included index, as well as any
 	// prior snapshot
-	temp := make([]LogEntry, 0)
-	rf.log = append(temp, rf.log[index-rf.lastIncludedIndex:]...)
+	rf.log = append(make([]LogEntry, 0), rf.log[index-rf.lastIncludedIndex:]...)
 
-	lastIncludedEntry := rf.log[index]
-
-	rf.snapshot = snapshot
 	rf.lastIncludedIndex = index
+	lastIncludedEntry := rf.getAtIndex(index)
 	rf.lastIncludedTerm = lastIncludedEntry.Term
 
+	rf.snapshot = snapshot
 	rf.persist()
 
 }
@@ -256,7 +258,7 @@ func (rf *Raft) toLeader() {
 	rf.matchIndex = make([]int, len(rf.peers))
 
 	for i := range len(rf.peers) {
-		rf.nextIndex[i] = len(rf.log)
+		rf.nextIndex[i] = rf.getTotalLogLen()
 		rf.matchIndex[i] = 0
 	}
 }
@@ -267,7 +269,8 @@ func (rf *Raft) CheckElection() {
 	for !rf.killed() {
 
 		rf.mu.Lock()
-		DebugPrint(dInfo, "S%d, State: %d, VotedFor: %d, Term: %d", rf.me, rf.state, rf.votedFor, rf.currentTerm)
+		DebugPrint(dInfo, "S%d, State: %d, VotedFor: %d, Term: %d, LastIncludedIndex: %d", rf.me, rf.state, rf.votedFor, rf.currentTerm, rf.lastIncludedIndex)
+		DPrintf("[CHECKELECTION] S%d, State: %d, VotedFor: %d, Term: %d, LastIncludedIndex: %d", rf.me, rf.state, rf.votedFor, rf.currentTerm, rf.lastIncludedIndex)
 		state := rf.state
 		rf.mu.Unlock()
 
@@ -332,10 +335,10 @@ func (rf *Raft) PushCommitIndex() {
 		}
 
 		// DebugPrint(dCommit, "S%v trying commit index. Info log: %v, matchIndex: %v, term: %v", rf.me, rf.log, rf.matchIndex, rf.currentTerm)
-		for N := rf.commitIndex + 1; N < len(rf.log); N++ {
-
-			if rf.isMajority(N) && rf.log[N].Term == rf.currentTerm {
+		for N := rf.commitIndex + 1; N < rf.getTotalLogLen(); N++ {
+			if rf.isMajority(N) && rf.getAtIndex(N).Term == rf.currentTerm {
 				rf.commitIndex = N
+				DPrintf("[PUSHCOMMITINDEX] S%d, CommitIndex: %d", rf.me, rf.commitIndex)
 			}
 		}
 
@@ -353,16 +356,20 @@ func (rf *Raft) SendApplyCh() {
 		rf.mu.Lock()
 
 		// DebugPrint(dCommit, "S%v is committing entries index [%v, %v)", rf.me, rf.lastApplied, rf.commitIndex)
-
-		for rf.commitIndex > rf.lastApplied {
+		rf.lastApplied = max(rf.lastApplied, rf.lastIncludedIndex)
+		rf.commitIndex = max(rf.commitIndex, rf.lastIncludedIndex)
+		for rf.commitIndex > rf.lastApplied && rf.lastApplied < rf.getTotalLogLen() {
 			rf.lastApplied++
-			entry := rf.log[rf.lastApplied]
+			DPrintf("[SENDAPPLYCH] S%d, CommitIndex: %d, lastApplied: %d, lastIncludedIndex: %d, log len: %d", rf.me, rf.commitIndex, rf.lastApplied, rf.lastIncludedIndex, rf.getTotalLogLen())
+			entry := rf.getAtIndex(rf.lastApplied)
+			rf.mu.Unlock()
 			msg := raftapi.ApplyMsg{
 				CommandValid: true,
 				Command:      entry.Command,
 				CommandIndex: rf.lastApplied,
 			}
 			rf.applyCh <- msg
+			rf.mu.Lock()
 		}
 		rf.mu.Unlock()
 		time.Sleep(waitTime)
@@ -385,24 +392,24 @@ func (rf *Raft) SendApplyCh() {
 func (rf *Raft) Start(command interface{}) (int, int, bool) {
 	rf.mu.Lock()
 
-	index := len(rf.log)
 	term := rf.currentTerm
 	isLeader := rf.state == Leader
-
 	if !isLeader {
 		rf.mu.Unlock()
+
 		return -1, term, isLeader
 	}
+
+	index := rf.getTotalLogLen()
 
 	newEntry := LogEntry{
 		Term:    term,
 		Command: command,
 	}
 	rf.log = append(rf.log, newEntry)
-	rf.persist()
 
 	rf.mu.Unlock()
-
+	rf.persist()
 	// Send AppendEntries to other servers
 	rf.sendHeartbeatsAndNewEntries()
 
@@ -454,7 +461,11 @@ func Make(peers []*labrpc.ClientEnd, me int,
 
 	rf.commitIndex = 0
 	rf.lastApplied = 0
+
 	rf.lastIncludedIndex = 0
+	rf.lastIncludedTerm = 0
+	rf.snapshot = make([]byte, 0)
+
 	rf.applyCh = applyCh
 
 	rf.majority = int32(len(peers) / 2)
@@ -463,6 +474,8 @@ func Make(peers []*labrpc.ClientEnd, me int,
 
 	// initialize from state persisted before a crash
 	rf.readPersist(persister.ReadRaftState())
+
+	rf.snapshot = persister.ReadSnapshot()
 
 	go rf.CheckElection()
 

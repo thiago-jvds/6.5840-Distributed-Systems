@@ -12,6 +12,7 @@ func (rf *Raft) sendHeartbeatsAndNewEntries() {
 
 			// retry indefinetely
 			for !rf.killed() {
+
 				// create args
 				rf.mu.Lock()
 
@@ -20,9 +21,26 @@ func (rf *Raft) sendHeartbeatsAndNewEntries() {
 					return
 				}
 
+				if rf.nextIndex[server]-rf.lastIncludedIndex < 1 {
+					rf.mu.Unlock()
+					rf.sendSnapshot(server)
+					return
+				}
+
 				prevLogIndex := rf.nextIndex[server] - 1
-				prevLogTerm := rf.log[prevLogIndex].Term
-				entries := append(make([]LogEntry, 0), rf.log[rf.nextIndex[server]:]...)
+
+				var prevLogTerm int
+				// not in the snapshot
+				if prevLogIndex < rf.lastIncludedIndex {
+					prevLogTerm = -1
+				} else {
+					prevLogTerm = rf.getAtIndex(prevLogIndex).Term
+				}
+
+				entries := make([]LogEntry, 0)
+				if rf.nextIndex[server]-rf.lastIncludedIndex >= 0 {
+					entries = append(make([]LogEntry, 0), rf.log[rf.nextIndex[server]-rf.lastIncludedIndex:]...)
+				}
 
 				args := AppendEntriesArgs{
 					Term:         rf.currentTerm,
@@ -32,6 +50,10 @@ func (rf *Raft) sendHeartbeatsAndNewEntries() {
 					Entries:      entries,
 					LeaderCommit: rf.commitIndex,
 				}
+				DPrintf("[SHANE] S%v sending S%d AppendEntries, with following args term: %v, prevLogIndex: %v, prevLogTerm: %v, leaderCommit: %v, entries len: %v",
+					rf.me, server, args.Term, args.PrevLogIndex, args.PrevLogTerm, args.LeaderCommit, len(args.Entries))
+				DebugPrint(dLeader, "S%v sent heartbeat S%v, with following args args term: %v, prevLogIndex: %v, prevLogTerm: %v, leaderCommit: %v, entries len: %v",
+					rf.me, server, args.Term, args.PrevLogIndex, args.PrevLogTerm, args.LeaderCommit, len(args.Entries))
 				rf.mu.Unlock()
 
 				reply := AppendEntriesReply{}
@@ -42,13 +64,13 @@ func (rf *Raft) sendHeartbeatsAndNewEntries() {
 
 					// If RPC request or response contains term T > currentTerm:
 					// set currentTerm = T, convert to follower (§5.1)
-					if reply.Term > rf.currentTerm {
-						rf.toFollower(reply.Term)
+					if rf.state != Leader || rf.currentTerm != args.Term {
 						rf.mu.Unlock()
 						return
 
 						// if server changed its state after args was created, do nothing
-					} else if rf.state != Leader || rf.currentTerm != args.Term {
+					} else if reply.Term > rf.currentTerm {
+						rf.toFollower(reply.Term)
 						rf.mu.Unlock()
 						return
 
@@ -69,12 +91,16 @@ func (rf *Raft) sendHeartbeatsAndNewEntries() {
 						// Case 3: follower's log is too short:
 						if reply.XTerm == -1 {
 							rf.nextIndex[server] = reply.XLen
+
+							// if rf.lastIncludedIndex-reply.XLen > 1 {
+							// 	go rf.sendSnapshot(server)
+							// }
 						} else {
 
 							// try to find the conflictTerm in log
-							finalIdx := len(rf.log) - 1
-							for ; finalIdx >= 0; finalIdx-- {
-								if rf.log[finalIdx].Term == reply.XTerm {
+							finalIdx := rf.getTotalLogLen() - 1
+							for ; finalIdx >= rf.lastIncludedIndex; finalIdx-- {
+								if rf.getAtIndex(finalIdx).Term == reply.XTerm {
 									break
 								}
 							}
@@ -90,7 +116,6 @@ func (rf *Raft) sendHeartbeatsAndNewEntries() {
 
 						}
 						rf.mu.Unlock()
-
 					}
 
 				}
