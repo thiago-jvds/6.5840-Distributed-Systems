@@ -375,6 +375,8 @@ func (rf *Raft) SendApplyCh() {
 		time.Sleep(waitTime)
 
 	}
+
+	close(rf.applyCh)
 }
 
 // the service using Raft (e.g. a k/v server) wants to start
@@ -430,6 +432,7 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
 func (rf *Raft) Kill() {
 	atomic.StoreInt32(&rf.dead, 1)
 	// Your code here, if desired.
+	// close(rf.applyCh)
 }
 
 func (rf *Raft) killed() bool {
