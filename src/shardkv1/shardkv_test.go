@@ -67,7 +67,7 @@ func TestStaticOneShardGroup5A(t *testing.T) {
 
 	// disconnect raft leader of shardgrp and check that keys are
 	// still available
-	ts.disconnectClntFromLeader(ck.(*kvtest.TestClerk).Clnt, shardcfg.Gid1)
+	ts.disconnectClntFromLeader(shardcfg.Gid1)
 
 	for i := 0; i < n; i++ {
 		ts.CheckGet(ck, ka[i], va[i], rpc.Tversion(1)) // check the puts
@@ -574,7 +574,7 @@ func TestRecoverCtrler5B(t *testing.T) {
 
 // Test concurrent ctrlers fighting for leadership reliable
 func TestConcurrentReliable5C(t *testing.T) {
-	ts := MakeTestLeases(t, "Test (5C): Concurent ctrlers ...", true)
+	ts := MakeTestLeases(t, "Test (5C): Concurrent ctrlers ...", true)
 	defer ts.Cleanup()
 	ts.setupKVService()
 	ck := ts.MakeClerk()
@@ -584,7 +584,7 @@ func TestConcurrentReliable5C(t *testing.T) {
 
 // Test concurrent ctrlers fighting for leadership unreliable
 func TestAcquireLockConcurrentUnreliable5C(t *testing.T) {
-	ts := MakeTestLeases(t, "Test (5C): Concurent ctrlers ...", false)
+	ts := MakeTestLeases(t, "Test (5C): Concurrent ctrlers ...", false)
 	defer ts.Cleanup()
 	ts.setupKVService()
 	ck := ts.MakeClerk()
