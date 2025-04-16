@@ -3,6 +3,8 @@ package kvraft
 import (
 	"time"
 
+	"math/rand"
+
 	"6.5840/kvsrv1/rpc"
 	kvtest "6.5840/kvtest1"
 	tester "6.5840/tester1"
@@ -13,13 +15,26 @@ type Clerk struct {
 	servers []string
 	// You will have to modify this struct.
 	lastLeader int
+	clientId   int32 // Unique ID for the client
+	reqId      int   // Unique ID for the request
+}
+
+// generates a unique client ID
+func MakeClerkId() int32 {
+	return rand.Int31()
+}
+
+func (ck *Clerk) GetRequestId() int {
+	ck.reqId++
+	return ck.reqId
 }
 
 func MakeClerk(clnt *tester.Clnt, servers []string) kvtest.IKVClerk {
 	ck := &Clerk{clnt: clnt, servers: servers}
 	// You'll have to add code here.
 	ck.lastLeader = 0
-
+	ck.reqId = 0
+	ck.clientId = MakeClerkId()
 	return ck
 }
 
@@ -36,7 +51,11 @@ func MakeClerk(clnt *tester.Clnt, servers []string) kvtest.IKVClerk {
 func (ck *Clerk) Get(key string) (string, rpc.Tversion, rpc.Err) {
 
 	// Keep trying indefintely
-	args := rpc.GetArgs{Key: key}
+	args := rpc.GetArgs{
+		Key: key,
+		CId: ck.clientId,
+		RId: ck.GetRequestId(),
+	}
 
 	chosenIdx := ck.lastLeader
 	for {
@@ -86,9 +105,10 @@ func (ck *Clerk) Put(key string, value string, version rpc.Tversion) rpc.Err {
 		Key:     key,
 		Value:   value,
 		Version: version,
+		CId:     ck.clientId,
+		RId:     ck.GetRequestId(),
 	}
 
-	// defaults to 'false'
 	hasGoneTru := make([]bool, len(ck.servers))
 	chosenIdx := ck.lastLeader
 	for {
@@ -101,8 +121,6 @@ func (ck *Clerk) Put(key string, value string, version rpc.Tversion) rpc.Err {
 		// First time trying
 		if ok && !hasGoneTru[chosenIdx%len(ck.servers)] && reply.Err == rpc.ErrVersion {
 			DPrintf("Clerk: PUT returned ErrVersion at %s\n", ck.servers[chosenIdx%len(ck.servers)])
-
-			// ck.lastLeader = chosenIdx % len(ck.servers)
 
 			return rpc.ErrVersion
 		}

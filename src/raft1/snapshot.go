@@ -81,7 +81,10 @@ func (rf *Raft) InstallSnapshot(args *InstallSnapshotArgs, reply *InstallSnapsho
 		SnapshotTerm:  args.LastIncludedTerm,
 	}
 	rf.mu.Unlock()
-	rf.applyCh <- msg
+
+	if !rf.killed() {
+		rf.applyCh <- msg
+	}
 
 }
 

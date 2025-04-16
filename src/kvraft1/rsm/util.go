@@ -1,16 +1,13 @@
-package kvraft
+package rsm
 
 import (
 	"log"
-
-	rsm "6.5840/kvraft1/rsm"
 )
 
-// Debugging
-// const Debug = false
+const Debug = false
 
 func DPrintf(format string, a ...interface{}) {
-	if rsm.Debug {
+	if Debug {
 		log.Printf(format, a...)
 	}
 }

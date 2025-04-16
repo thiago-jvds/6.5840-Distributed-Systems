@@ -44,9 +44,10 @@ type RSM struct {
 	sm           StateMachine
 
 	// keep track of which Ops have committed
-	ops2Submit map[int][]any
-	dead       int32
-	opNum      int
+	ops2Submit       map[int][]any
+	dead             int32
+	opNum            int
+	lastAppliedIndex int
 }
 
 func (rsm *RSM) Kill() {
@@ -71,31 +72,53 @@ func (rsm *RSM) reader() {
 			if !ok {
 				rsm.Kill()
 				rsm.mu.Unlock()
-				// fmt.Printf("closing channel\n")
 				return
 			}
 
-			if !msg.CommandValid {
-				rsm.mu.Unlock()
-				continue
+			if msg.CommandValid {
+				command := msg.Command.(Op)
+
+				DPrintf("READER apply op.id: %v, o p.req: %v, op.me: %v, index: %v, lastApplied: %v\n", command.Id, command.Req, command.Me, msg.CommandIndex, rsm.lastAppliedIndex)
+
+				if rsm.lastAppliedIndex >= msg.CommandIndex {
+					rsm.mu.Unlock()
+					continue
+				}
+
+				// fmt.Printf("received apply op.id: %v, o p.req: %v, op.me: %v\n", command.Id, command.Req, command.Me)
+
+				res := rsm.sm.DoOp(command.Req)
+				if _, ok := rsm.ops2Submit[command.Id]; !ok {
+					rsm.ops2Submit[command.Id] = []any{res, msg.CommandIndex}
+				}
+
+				rsm.lastAppliedIndex = msg.CommandIndex
+
 			}
 
-			command := msg.Command.(Op)
-
-			// fmt.Printf("received apply op.id: %v, o p.req: %v, op.me: %v\n", command.Id, command.Req, command.Me)
-
-			res := rsm.sm.DoOp(command.Req)
-			if _, ok := rsm.ops2Submit[command.Id]; !ok {
-				rsm.ops2Submit[command.Id] = []any{res, msg.CommandIndex}
+			if msg.SnapshotValid {
+				DPrintf("READER RSM %v: Snapshotting at index %d\n", rsm.me, msg.SnapshotIndex)
+				rsm.recover(msg.Snapshot)
+				rsm.lastAppliedIndex = msg.SnapshotIndex
 			}
+
 		default:
 			// nothing in the channel, do nothing
 		}
 		rsm.mu.Unlock()
+
+		rsm.checkSnapshot()
 		time.Sleep(10 * time.Millisecond)
 
 	}
 
+}
+
+func (rsm *RSM) recover(snapshot []byte) {
+
+	if len(snapshot) > 0 {
+		rsm.sm.Restore(snapshot)
+	}
 }
 
 // servers[] contains the ports of the set of
@@ -120,12 +143,16 @@ func MakeRSM(servers []*labrpc.ClientEnd, me int, persister *tester.Persister, m
 		applyCh:      make(chan raftapi.ApplyMsg),
 		sm:           sm,
 	}
+
 	if !useRaftStateMachine {
 		rsm.rf = raft.Make(servers, me, persister, rsm.applyCh)
 	}
 
 	rsm.ops2Submit = make(map[int][]any)
 	rsm.opNum = 0
+	rsm.lastAppliedIndex = 0
+
+	rsm.recover(persister.ReadSnapshot())
 
 	go rsm.reader()
 
@@ -134,6 +161,21 @@ func MakeRSM(servers []*labrpc.ClientEnd, me int, persister *tester.Persister, m
 
 func (rsm *RSM) Raft() raftapi.Raft {
 	return rsm.rf
+}
+
+func (rsm *RSM) checkSnapshot() {
+	rsm.mu.Lock()
+	defer rsm.mu.Unlock()
+
+	if rsm.maxraftstate != -1 && rsm.rf.PersistBytes() >= rsm.maxraftstate {
+
+		snapshot := rsm.sm.Snapshot()
+
+		rsm.rf.Snapshot(rsm.lastAppliedIndex, snapshot)
+
+		DPrintf("RSM %v: Snapshotting at index %d\n", rsm.me, rsm.lastAppliedIndex)
+
+	}
 }
 
 // Submit a command to Raft, and wait for it to be committed.  It
@@ -157,14 +199,8 @@ func (rsm *RSM) Submit(req any) (rpc.Err, any) {
 
 	for !rsm.killed() {
 
-		// fmt.Printf("trying to submit op.id: %v, op.req: %v, op.me: %v\n", op.Id, op.Req, op.Me)
+		DPrintf("SUBMIT: trying to submit op.id: %v, op.req: %v, op.me: %v\n", op.Id, op.Req, op.Me)
 		rsm.mu.Lock()
-
-		// if rsm.killed() {
-		// 	// fmt.Printf("shutdown rsm.me: %v\n", rsm.me)
-		// 	rsm.mu.Unlock()
-		// 	return rpc.ErrWrongLeader, nil
-		// }
 
 		curTerm, isLeader := rsm.rf.GetState()
 		if curTerm != oldTerm || !isLeader {
@@ -175,14 +211,20 @@ func (rsm *RSM) Submit(req any) (rpc.Err, any) {
 		arr, ok := rsm.ops2Submit[op.Id]
 
 		if ok {
-			res, index := arr[0], arr[1]
+			res, index := arr[0], arr[1].(int)
 			delete(rsm.ops2Submit, op.Id)
 
 			if index == oldIndex {
 				rsm.mu.Unlock()
-				// fmt.Printf("submitting op.id: %v, op.req: %v, op.me: %v\n", op.Id, op.Req, op.Me)
+				DPrintf("SUBMIT: submitting op.id: %v, op.req: %v, op.me: %v\n", op.Id, op.Req, op.Me)
 				return rpc.OK, res
 			}
+			if index <= rsm.lastAppliedIndex {
+				rsm.mu.Unlock()
+				// DPrintf("SUBMIT:/ submitting op.id: %v, op.req: %v, op.me: %v\n", op.Id, op.Req, op.Me)
+				return rpc.ErrWrongLeader, res
+			}
+
 		}
 
 		rsm.mu.Unlock()

@@ -362,12 +362,12 @@ func (rf *Raft) SendApplyCh() {
 			rf.lastApplied++
 			DPrintf("[SENDAPPLYCH] S%d, CommitIndex: %d, lastApplied: %d, lastIncludedIndex: %d, log len: %d", rf.me, rf.commitIndex, rf.lastApplied, rf.lastIncludedIndex, rf.getTotalLogLen())
 			entry := rf.getAtIndex(rf.lastApplied)
-			rf.mu.Unlock()
 			msg := raftapi.ApplyMsg{
 				CommandValid: true,
 				Command:      entry.Command,
 				CommandIndex: rf.lastApplied,
 			}
+			rf.mu.Unlock()
 			rf.applyCh <- msg
 			rf.mu.Lock()
 		}
@@ -410,8 +410,8 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
 	}
 	rf.log = append(rf.log, newEntry)
 
-	rf.mu.Unlock()
 	rf.persist()
+	rf.mu.Unlock()
 	// Send AppendEntries to other servers
 	rf.sendHeartbeatsAndNewEntries()
 
