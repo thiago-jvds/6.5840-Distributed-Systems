@@ -20,17 +20,19 @@ import (
 )
 
 type Clerk struct {
-	clnt *tester.Clnt
-	sck  *shardctrler.ShardCtrler
-	mu   sync.Mutex
+	clnt   *tester.Clnt
+	sck    *shardctrler.ShardCtrler
+	mu     sync.Mutex
+	clerks map[tester.Tgid]*shardgrp.Clerk
 }
 
 // The tester calls MakeClerk and passes in a shardctrler so that
 // client can call it's Query method
 func MakeClerk(clnt *tester.Clnt, sck *shardctrler.ShardCtrler) kvtest.IKVClerk {
 	ck := &Clerk{
-		clnt: clnt,
-		sck:  sck,
+		clnt:   clnt,
+		sck:    sck,
+		clerks: make(map[tester.Tgid]*shardgrp.Clerk),
 	}
 
 	// You'll have to add code here.
@@ -49,16 +51,15 @@ func (ck *Clerk) Get(key string) (string, rpc.Tversion, rpc.Err) {
 
 		shard := shardcfg.Key2Shard(key)
 
-		_, servers, ok := oldcfg.GidServers(shard)
+		gid, _, _ := oldcfg.GidServers(shard)
+		clerk, ok := ck.clerks[gid]
 
 		if !ok {
-			shardgrp.DPrintf("Clerk: Get: no servers for shard %d\n", shard)
-			return "", 0, rpc.ErrNoKey
+			ck.changeClerks(oldcfg)
+			clerk = ck.clerks[gid]
 		}
 
-		newClerk := shardgrp.MakeClerk(ck.clnt, servers)
-
-		val, version, err := newClerk.Get(key)
+		val, version, err := clerk.Get(key)
 
 		if err == rpc.OK {
 			return val, version, err
@@ -68,15 +69,19 @@ func (ck *Clerk) Get(key string) (string, rpc.Tversion, rpc.Err) {
 			newCfg := ck.sck.Query()
 
 			if oldcfg.String() == newCfg.String() {
+				oldcfg = newCfg
+				ck.changeClerks(newCfg)
 				return "", 0, rpc.ErrNoKey
 			}
 
 			oldcfg = newCfg
+			ck.changeClerks(newCfg)
 			continue
 		}
 
 		if err == rpc.ErrWrongGroup {
 			oldcfg = ck.sck.Query()
+			ck.changeClerks(oldcfg)
 			continue
 		}
 	}
@@ -93,16 +98,18 @@ func (ck *Clerk) Put(key string, value string, version rpc.Tversion) rpc.Err {
 
 		shard := shardcfg.Key2Shard(key)
 
-		_, servers, ok := oldcfg.GidServers(shard)
+		gid, _, _ := oldcfg.GidServers(shard)
+
+		clerk, ok := ck.clerks[gid]
+
 		if !ok {
-			panic("Clerk: Put: no servers for shard %d\n")
+			ck.changeClerks(oldcfg)
+			clerk = ck.clerks[gid]
 		}
 
-		newClerk := shardgrp.MakeClerk(ck.clnt, servers)
+		err := clerk.Put(key, value, version)
 
-		err := newClerk.Put(key, value, version)
-
-		if ok && !hasTried && err == rpc.ErrVersion {
+		if !hasTried && err == rpc.ErrVersion {
 			return rpc.ErrVersion
 		}
 
@@ -116,10 +123,13 @@ func (ck *Clerk) Put(key string, value string, version rpc.Tversion) rpc.Err {
 			newCfg := ck.sck.Query()
 
 			if oldcfg.String() == newCfg.String() {
+				oldcfg = newCfg
+				ck.changeClerks(newCfg)
 				return rpc.ErrNoKey
 			}
 
 			oldcfg = newCfg
+			ck.changeClerks(newCfg)
 			continue
 		}
 
@@ -129,8 +139,18 @@ func (ck *Clerk) Put(key string, value string, version rpc.Tversion) rpc.Err {
 
 		if err == rpc.ErrWrongGroup {
 			oldcfg = ck.sck.Query()
+			ck.changeClerks(oldcfg)
 			continue
 		}
 
+	}
+}
+
+func (ck *Clerk) changeClerks(newConfig *shardcfg.ShardConfig) {
+
+	ck.clerks = make(map[tester.Tgid]*shardgrp.Clerk)
+
+	for gid, servers := range newConfig.Groups {
+		ck.clerks[gid] = shardgrp.MakeClerk(ck.clnt, servers)
 	}
 }

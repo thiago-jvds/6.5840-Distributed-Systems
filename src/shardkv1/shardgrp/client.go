@@ -12,7 +12,7 @@ import (
 )
 
 const waitTime = 100 * time.Microsecond
-const maxAttempts = 1000
+const timeoutTime = 800 * time.Millisecond
 
 type Clerk struct {
 	clnt    *tester.Clnt
@@ -42,61 +42,67 @@ func MakeClerk(clnt *tester.Clnt, servers []string) *Clerk {
 }
 
 func (ck *Clerk) Get(key string) (string, rpc.Tversion, rpc.Err) {
-
-	// Keep trying indefintely
 	args := rpc.GetArgs{
 		Key: key,
 		CId: ck.clientId,
 		RId: ck.GetRequestId(),
 	}
 
+	timeout := time.After(timeoutTime)
 	chosenIdx := ck.lastLeader
-	i := 0
 	for {
-
-		DPrintf("[GET] at %s\n", ck.servers[chosenIdx%len(ck.servers)])
-		reply := rpc.GetReply{}
-
-		ok := ck.clnt.Call(ck.servers[chosenIdx%len(ck.servers)], "KVServer.Get", &args, &reply)
-
-		if ok && reply.Err == rpc.ErrWrongGroup {
-			DPrintf("[GET] returned WrongGroup at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+		select {
+		case <-timeout:
+			DPrintf("[GET] reached timeout; returned ErrWrongGroup\n")
 			return "", 0, rpc.ErrWrongGroup
-		}
 
-		if ok && reply.Err == rpc.ErrNoKey {
-			DPrintf("[GET] returned NoKey at %s\n", ck.servers[chosenIdx%len(ck.servers)])
-			return "", 0, rpc.ErrNoKey
-		}
+		default:
 
-		if ok && reply.Err == rpc.OK {
-			DPrintf("[GET] returned OK at %s\n", ck.servers[chosenIdx%len(ck.servers)])
-			ck.lastLeader = chosenIdx % len(ck.servers)
-			return reply.Value, reply.Version, reply.Err
-		}
+			DPrintf("[GET] at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+			reply := rpc.GetReply{}
 
-		chosenIdx++
-		if chosenIdx%len(ck.servers) == 0 {
+			ok := ck.clnt.Call(ck.servers[chosenIdx%len(ck.servers)], "KVServer.Get", &args, &reply)
 
-			time.Sleep(waitTime)
-		}
+			// not a leader, try next server
+			if ok && reply.Err == rpc.ErrWrongLeader {
+				DPrintf("[GET] returned WrongLeader at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+				chosenIdx++
+				if chosenIdx%len(ck.servers) == 0 {
+					time.Sleep(waitTime)
+				}
+				continue
+			}
 
-		if ok {
-			i = 0
-			continue
-		}
+			// rpc call was successful and it is a leader
+			if ok {
+				ck.lastLeader = chosenIdx % len(ck.servers)
+				if reply.Err == rpc.ErrWrongGroup {
+					DPrintf("[GET] returned WrongGroup at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+					return "", 0, rpc.ErrWrongGroup
+				}
 
-		if !ok {
-			DPrintf("[shardgrp GET] Reply not ok\n")
-			i++
-			if i == maxAttempts {
-				break
+				if reply.Err == rpc.OK {
+					DPrintf("[GET] returned OK at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+					return reply.Value, reply.Version, reply.Err
+				}
+
+				if reply.Err == rpc.ErrNoKey {
+					DPrintf("[GET] returned NoKey at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+
+					return "", 0, rpc.ErrNoKey
+				}
+				panic("Unexpected error in get")
+
+			}
+
+			// call failed, try next server
+			chosenIdx++
+			if chosenIdx%len(ck.servers) == 0 {
+				time.Sleep(waitTime)
 			}
 		}
 	}
 
-	DPrintf("[GET] reached max num of attempts; returned ErrWrongGroup\n")
-	return "", 0, rpc.ErrWrongGroup
 }
 
 func (ck *Clerk) Put(key string, value string, version rpc.Tversion) rpc.Err {
@@ -111,71 +117,75 @@ func (ck *Clerk) Put(key string, value string, version rpc.Tversion) rpc.Err {
 
 	hasGoneTru := make([]bool, len(ck.servers))
 	chosenIdx := ck.lastLeader
-	i := 0
+	timeout := time.After(timeoutTime)
 	for {
-
-		reply := rpc.PutReply{}
-		DPrintf("[PUT] at %s\n", ck.servers[chosenIdx%len(ck.servers)])
-
-		ok := ck.clnt.Call(ck.servers[chosenIdx%len(ck.servers)], "KVServer.Put", &args, &reply)
-
-		// First time trying
-		if ok && !hasGoneTru[chosenIdx%len(ck.servers)] && reply.Err == rpc.ErrVersion {
-			DPrintf("[PUT] returned ErrVersion at %s\n", ck.servers[chosenIdx%len(ck.servers)])
-
-			return rpc.ErrVersion
-		}
-
-		hasGoneTru[chosenIdx%len(ck.servers)] = true
-
-		if ok && reply.Err == rpc.ErrNoKey {
-			DPrintf("[PUT] returned noKey at %s\n", ck.servers[chosenIdx%len(ck.servers)])
-
-			return rpc.ErrNoKey
-		}
-
-		if ok && reply.Err == rpc.OK {
-			DPrintf("[PUT] returned OK at %s\n", ck.servers[chosenIdx%len(ck.servers)])
-			ck.lastLeader = chosenIdx % len(ck.servers)
-
-			return rpc.OK
-		}
-
-		if ok && reply.Err == rpc.ErrVersion && hasGoneTru[chosenIdx%len(ck.servers)] {
-			DPrintf("[PUT] returned Maybe at %s\n", ck.servers[chosenIdx%len(ck.servers)])
-
-			return rpc.ErrMaybe
-		}
-
-		if ok && reply.Err == rpc.ErrWrongGroup {
-			DPrintf("[PUT] returned ErrWrongGroup at %s\n", ck.servers[chosenIdx%len(ck.servers)])
-
+		select {
+		case <-timeout:
+			DPrintf("[PUT] reached timeout; returned ErrWrongGroup\n")
 			return rpc.ErrWrongGroup
-		}
+		default:
+			reply := rpc.PutReply{}
+			DPrintf("[PUT] at %s\n", ck.servers[chosenIdx%len(ck.servers)])
 
-		chosenIdx++
-		if chosenIdx%len(ck.servers) == 0 {
+			ok := ck.clnt.Call(ck.servers[chosenIdx%len(ck.servers)], "KVServer.Put", &args, &reply)
 
-			time.Sleep(waitTime)
-		}
+			// not a leader, try next server
+			if ok && reply.Err == rpc.ErrWrongLeader {
+				chosenIdx++
+				if chosenIdx%len(ck.servers) == 0 {
+					time.Sleep(waitTime)
+				}
+				continue
+			}
 
-		if ok {
-			i = 0
-			continue
-		}
+			// rpc call was successful and it is a leader
+			if ok {
+				ck.lastLeader = chosenIdx % len(ck.servers)
+				// First time trying
+				if !hasGoneTru[chosenIdx%len(ck.servers)] && reply.Err == rpc.ErrVersion {
+					DPrintf("[PUT] returned ErrVersion at %s\n", ck.servers[chosenIdx%len(ck.servers)])
 
-		if !ok {
-			DPrintf("[shardgrp PUT] Reply not ok\n")
-			i++
-			if i == maxAttempts {
-				break
+					return rpc.ErrVersion
+				}
+
+				hasGoneTru[chosenIdx%len(ck.servers)] = true
+
+				if reply.Err == rpc.ErrNoKey {
+					DPrintf("[PUT] returned noKey at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+
+					return rpc.ErrNoKey
+				}
+
+				if reply.Err == rpc.OK {
+					DPrintf("[PUT] returned OK at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+
+					return rpc.OK
+				}
+
+				if reply.Err == rpc.ErrVersion {
+					DPrintf("[PUT] returned Maybe at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+
+					return rpc.ErrMaybe
+				}
+
+				if reply.Err == rpc.ErrWrongGroup {
+					DPrintf("[PUT] returned ErrWrongGroup at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+
+					return rpc.ErrWrongGroup
+				}
+
+				panic("Unexpected error in put")
+
+			}
+
+			// call failed, try next server
+			chosenIdx++
+			if chosenIdx%len(ck.servers) == 0 {
+
+				time.Sleep(waitTime)
 			}
 		}
-
 	}
-
-	DPrintf("[PUT] reached max num of attempts; returned ErrWrongGroup\n")
-	return rpc.ErrWrongGroup
 }
 
 func (ck *Clerk) FreezeShard(s shardcfg.Tshid, num shardcfg.Tnum) ([]byte, rpc.Err) {
@@ -188,52 +198,55 @@ func (ck *Clerk) FreezeShard(s shardcfg.Tshid, num shardcfg.Tnum) ([]byte, rpc.E
 	}
 
 	chosenIdx := ck.lastLeader
-	i := 0
+	timeout := time.After(timeoutTime)
 	for {
-
-		DPrintf("[FREEZE] at %s\n", ck.servers[chosenIdx%len(ck.servers)])
-		reply := shardrpc.FreezeShardReply{}
-
-		ok := ck.clnt.Call(ck.servers[chosenIdx%len(ck.servers)], "KVServer.FreezeShard", &args, &reply)
-
-		if ok && reply.Err == rpc.ErrNoKey {
-			DPrintf("[FREEZE] returned NoKey at %s\n", ck.servers[chosenIdx%len(ck.servers)])
-			return []byte{}, rpc.ErrNoKey
-		}
-
-		if ok && reply.Err == rpc.ErrWrongGroup {
-			DPrintf("[FREEZE] returned WrongGroup at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+		select {
+		case <-timeout:
+			DPrintf("[FREEZE] reached timeout; returned ErrWrongGroup\n")
 			return []byte{}, rpc.ErrWrongGroup
-		}
+		default:
+			DPrintf("[FREEZE] at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+			reply := shardrpc.FreezeShardReply{}
 
-		if ok && reply.Err == rpc.OK {
-			DPrintf("[FREEZE] returned OK at %s\n", ck.servers[chosenIdx%len(ck.servers)])
-			ck.lastLeader = chosenIdx % len(ck.servers)
-			return reply.State, reply.Err
-		}
+			ok := ck.clnt.Call(ck.servers[chosenIdx%len(ck.servers)], "KVServer.FreezeShard", &args, &reply)
 
-		chosenIdx++
-		if chosenIdx%len(ck.servers) == 0 {
-			time.Sleep(waitTime)
-		}
-
-		if ok {
-			i = 0
-			continue
-		}
-
-		if !ok {
-			DPrintf("[shardgrp FREEZE] Reply not ok\n")
-			i++
-			if i == maxAttempts {
-				break
+			// not a leader, try next server
+			if ok && reply.Err == rpc.ErrWrongLeader {
+				DPrintf("[FREEZE] returned WrongLeader at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+				chosenIdx++
+				if chosenIdx%len(ck.servers) == 0 {
+					time.Sleep(waitTime)
+				}
+				continue
 			}
+
+			// rpc call was successful and it is a leader
+			if ok {
+				ck.lastLeader = chosenIdx % len(ck.servers)
+
+				if reply.Err == rpc.ErrWrongGroup {
+					DPrintf("[FREEZE] returned WrongGroup at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+					return []byte{}, rpc.ErrWrongGroup
+				}
+
+				if reply.Err == rpc.OK {
+					DPrintf("[FREEZE] returned OK at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+
+					return reply.State, reply.Err
+				}
+
+				panic("Unexpected error in FreezeShard")
+			}
+
+			// call failed, try next server
+			chosenIdx++
+			if chosenIdx%len(ck.servers) == 0 {
+				time.Sleep(waitTime)
+			}
+			DPrintf("[FREEZE] call failed, trying next server\n")
 		}
 
 	}
-
-	DPrintf("[FREEZE] reached max num of attempts; returned ErrWrongGroup\n")
-	return []byte{}, rpc.ErrWrongGroup
 }
 
 func (ck *Clerk) InstallShard(s shardcfg.Tshid, state []byte, num shardcfg.Tnum) rpc.Err {
@@ -246,52 +259,53 @@ func (ck *Clerk) InstallShard(s shardcfg.Tshid, state []byte, num shardcfg.Tnum)
 	}
 
 	chosenIdx := ck.lastLeader
-	i := 0
+	timeout := time.After(timeoutTime)
 	for {
-
-		DPrintf("[SHARDGRP INSTALL] at %s\n", ck.servers[chosenIdx%len(ck.servers)])
-		reply := shardrpc.InstallShardReply{}
-
-		ok := ck.clnt.Call(ck.servers[chosenIdx%len(ck.servers)], "KVServer.InstallShard", &args, &reply)
-
-		if ok && reply.Err == rpc.ErrNoKey {
-			DPrintf("[SHARDGRP INSTALL] returned NoKey at %s\n", ck.servers[chosenIdx%len(ck.servers)])
-			return rpc.ErrNoKey
-		}
-
-		if ok && reply.Err == rpc.ErrWrongGroup {
-			DPrintf("[SHARDGRP INSTALL] returned WrongGroup at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+		select {
+		case <-timeout:
+			DPrintf("[INSTALL] reached timeout; returned ErrWrongGroup\n")
 			return rpc.ErrWrongGroup
-		}
+		default:
+			DPrintf("[SHARDGRP INSTALL] at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+			reply := shardrpc.InstallShardReply{}
 
-		if ok && reply.Err == rpc.OK {
-			DPrintf("[SHARDGRP INSTALL] returned OK at %s\n", ck.servers[chosenIdx%len(ck.servers)])
-			ck.lastLeader = chosenIdx % len(ck.servers)
-			return reply.Err
-		}
+			ok := ck.clnt.Call(ck.servers[chosenIdx%len(ck.servers)], "KVServer.InstallShard", &args, &reply)
 
-		chosenIdx++
-		if chosenIdx%len(ck.servers) == 0 {
-			time.Sleep(waitTime)
-		}
+			// not a leader, try next server
+			if ok && reply.Err == rpc.ErrWrongLeader {
+				chosenIdx++
+				if chosenIdx%len(ck.servers) == 0 {
+					time.Sleep(waitTime)
+				}
+				continue
+			}
 
-		if ok {
-			i = 0
-			continue
-		}
+			// rpc call was successful and it is a leader
+			if ok {
+				ck.lastLeader = chosenIdx % len(ck.servers)
 
-		if !ok {
-			DPrintf("[shardgrp INSTALL] Reply not ok\n")
-			i++
-			if i == maxAttempts {
-				break
+				if reply.Err == rpc.ErrWrongGroup {
+					DPrintf("[SHARDGRP INSTALL] returned WrongGroup at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+					return rpc.ErrWrongGroup
+				}
+
+				if reply.Err == rpc.OK {
+					DPrintf("[SHARDGRP INSTALL] returned OK at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+					return reply.Err
+				}
+
+				panic("Unexpected error in InstallShard")
+
+			}
+
+			// call failed, try next server
+			chosenIdx++
+			if chosenIdx%len(ck.servers) == 0 {
+				time.Sleep(waitTime)
 			}
 		}
 
 	}
-
-	DPrintf("[INSTALL] reached max num of attempts; returned ErrWrongGroup\n")
-	return rpc.ErrWrongGroup
 }
 
 func (ck *Clerk) DeleteShard(s shardcfg.Tshid, num shardcfg.Tnum) rpc.Err {
@@ -303,45 +317,53 @@ func (ck *Clerk) DeleteShard(s shardcfg.Tshid, num shardcfg.Tnum) rpc.Err {
 	}
 
 	chosenIdx := ck.lastLeader
-	i := 0
+	timeout := time.After(timeoutTime)
 	for {
+		select {
+		case <-timeout:
+			DPrintf("[DELETE] reached timeout; returned ErrWrongGroup\n")
+			return rpc.ErrWrongGroup
 
-		DPrintf("[DELETE] at %s\n", ck.servers[chosenIdx%len(ck.servers)])
-		reply := shardrpc.DeleteShardReply{}
+		default:
 
-		ok := ck.clnt.Call(ck.servers[chosenIdx%len(ck.servers)], "KVServer.DeleteShard", &args, &reply)
+			DPrintf("[DELETE] at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+			reply := shardrpc.DeleteShardReply{}
 
-		if ok && reply.Err == rpc.ErrWrongGroup {
-			DPrintf("[DELETE] returned WrongGroup at %s\n", ck.servers[chosenIdx%len(ck.servers)])
-			return reply.Err
-		}
+			ok := ck.clnt.Call(ck.servers[chosenIdx%len(ck.servers)], "KVServer.DeleteShard", &args, &reply)
 
-		if ok && reply.Err == rpc.OK {
-			DPrintf("[DELETE] returned OK at %s\n", ck.servers[chosenIdx%len(ck.servers)])
-			ck.lastLeader = chosenIdx % len(ck.servers)
-			return reply.Err
-		}
+			// not a leader, try next server
+			if ok && reply.Err == rpc.ErrWrongLeader {
+				chosenIdx++
+				if chosenIdx%len(ck.servers) == 0 {
+					time.Sleep(waitTime)
+				}
+				continue
+			}
 
-		chosenIdx++
-		if chosenIdx%len(ck.servers) == 0 {
-			time.Sleep(waitTime)
-		}
+			// rpc call was successful and it is a leader
+			if ok {
+				ck.lastLeader = chosenIdx % len(ck.servers)
+				if reply.Err == rpc.ErrWrongGroup {
+					DPrintf("[DELETE] returned WrongGroup at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+					return reply.Err
+				}
 
-		if ok {
-			i = 0
-			continue
-		}
+				if reply.Err == rpc.OK {
+					DPrintf("[DELETE] returned OK at %s\n", ck.servers[chosenIdx%len(ck.servers)])
+					return reply.Err
+				}
 
-		if !ok {
-			DPrintf("[shardgrp DELETE] Reply not ok\n")
-			i++
-			if i == maxAttempts {
-				break
+				panic("Unexpected error in DeleteShard")
+
+			}
+
+			// call failed, try next server
+			chosenIdx++
+			if chosenIdx%len(ck.servers) == 0 {
+				time.Sleep(waitTime)
 			}
 		}
 
 	}
 
-	DPrintf("[DELETE] reached max num of attempts; returned ErrWrongGroup\n")
-	return rpc.ErrWrongGroup
 }

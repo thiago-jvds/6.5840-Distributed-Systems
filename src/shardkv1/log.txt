@@ -1,0 +1,4 @@
+Test (5A): many groups join/leave ... (unreliable network)...
+  ... Passed --  time 95.8s #peers 1 #RPCs 13270 #Ops  180
+PASS
+ok  	6.5840/shardkv1	96.015s

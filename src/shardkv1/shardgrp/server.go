@@ -30,11 +30,14 @@ type KVServer struct {
 	// clientId -> command
 	client2latestCmd map[int32]Cmd
 
+	// controllerId -> command
+	controller2latestCmd map[int32]Cmd
+
 	// shards owned
 	ownedShards [shardcfg.NShards]bool
 
 	// shards that are frozen
-	freeze []shardcfg.Tshid
+	freeze map[shardcfg.Tshid]bool
 }
 
 func (kv *KVServer) DoOp(req any) any {
@@ -80,6 +83,10 @@ func (kv *KVServer) Snapshot() []byte {
 	e := labgob.NewEncoder(w)
 	e.Encode(kv.shard2kvdbase)
 	e.Encode(kv.client2latestCmd)
+	e.Encode(kv.controller2latestCmd)
+	e.Encode(kv.configNums)
+	e.Encode(kv.ownedShards)
+	e.Encode(kv.freeze)
 
 	if err := e.Encode(kv.shard2kvdbase); err != nil {
 		DPrintf("Error in encoding kvdbase")
@@ -89,15 +96,27 @@ func (kv *KVServer) Snapshot() []byte {
 		DPrintf("Error in encoding client2latestCmd")
 	}
 
+	if err := e.Encode(kv.controller2latestCmd); err != nil {
+		DPrintf("Error in encoding controller2latestCmd")
+	}
+	if err := e.Encode(kv.configNums); err != nil {
+		DPrintf("Error in encoding configNums")
+	}
+	if err := e.Encode(kv.ownedShards); err != nil {
+		DPrintf("Error in encoding ownedShards")
+	}
+	if err := e.Encode(kv.freeze); err != nil {
+		DPrintf("Error in encoding freeze")
+	}
+
 	return w.Bytes()
 }
 
 func (kv *KVServer) Restore(data []byte) {
+	DPrintf("KVServer %v: Restoring\n", kv.me)
 	if data == nil || len(data) < 1 { // bootstrap without any state?
 		return
 	}
-
-	DPrintf("KVServer %v: Restoring\n", kv.me)
 
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
@@ -106,54 +125,60 @@ func (kv *KVServer) Restore(data []byte) {
 	d := labgob.NewDecoder(r)
 	var shard2kvdbase map[shardcfg.Tshid]map[any]KDBEntry
 	var client2latestCmd map[int32]Cmd
+	var controller2latestCmd map[int32]Cmd
+	var configNums map[shardcfg.Tshid]shardcfg.Tnum
+	var ownedShards [shardcfg.NShards]bool
+	var freeze map[shardcfg.Tshid]bool
 
 	if d.Decode(&shard2kvdbase) != nil ||
-		d.Decode(&client2latestCmd) != nil {
+		d.Decode(&client2latestCmd) != nil ||
+		d.Decode(&controller2latestCmd) != nil ||
+		d.Decode(&configNums) != nil ||
+		d.Decode(&ownedShards) != nil ||
+		d.Decode(&freeze) != nil {
 		DPrintf("Error in decoding kvdbase")
 	} else {
 		kv.shard2kvdbase = shard2kvdbase
 		kv.client2latestCmd = client2latestCmd
+		kv.controller2latestCmd = controller2latestCmd
+		kv.configNums = configNums
+		kv.ownedShards = ownedShards
+		kv.freeze = freeze
 	}
 
 	DPrintf("KVServer %v: Done Restoring\n", kv.me)
 }
 
 func (kv *KVServer) Get(args *rpc.GetArgs, reply *rpc.GetReply) {
-	// Your code here. Use kv.rsm.Submit() to submit args
-	// You can use go's type casts to turn the any return value
-	// of Submit() into a GetReply: rep.(rpc.GetReply)
-
-	// is the shard froze?
-
 	DPrintf("KVServer %v: [GET] Starting\n", kv.me)
 
-	kv.mu.Lock()
-	shardId := shardcfg.Key2Shard(args.Key)
+	// kv.mu.Lock()
+	// shardId := shardcfg.Key2Shard(args.Key)
 
-	if kv.isFrozen(shardId) {
-		reply.Err = rpc.ErrWrongGroup
-		reply.Value = ""
-		reply.Version = 0
-		DPrintf("KVServer %v: [GET] called with args %v, but shard %v is frozen\n", kv.me, args, shardId)
-		kv.mu.Unlock()
-		return
+	// if kv.isFrozen(shardId) {
+	// 	reply.Err = rpc.ErrWrongGroup
+	// 	reply.Value = ""
+	// 	reply.Version = 0
+	// 	DPrintf("KVServer %v: [GET] called with args %v, but shard %v is frozen\n", kv.me, args, shardId)
+	// 	kv.mu.Unlock()
+	// 	return
 
-	}
-	kv.mu.Unlock()
+	// }
+	// kv.mu.Unlock()
 
-	kv.mu.Lock()
-	if lastestCmd, ok := kv.client2latestCmd[args.CId]; ok {
-		if lastestCmd.RId >= args.RId {
+	// kv.mu.Lock()
+	// if lastestCmd, ok := kv.client2latestCmd[args.CId]; ok {
+	// 	if lastestCmd.RId >= args.RId {
 
-			reply.Value = kv.shard2kvdbase[shardId][args.Key].Value
-			reply.Version = kv.shard2kvdbase[shardId][args.Key].Version
-			reply.Err = rpc.OK
-			DPrintf("KVServer %v: [GET DUP] called with args %v, but already processed\n", kv.me, args)
-			kv.mu.Unlock()
-			return
-		}
-	}
-	kv.mu.Unlock()
+	// 		reply.Value = kv.shard2kvdbase[shardId][args.Key].Value
+	// 		reply.Version = kv.shard2kvdbase[shardId][args.Key].Version
+	// 		reply.Err = rpc.OK
+	// 		DPrintf("KVServer %v: [GET DUP] called with args %v, but already processed\n", kv.me, args)
+	// 		kv.mu.Unlock()
+	// 		return
+	// 	}
+	// }
+	// kv.mu.Unlock()
 
 	kv.mu.Lock()
 	if _, isLeader := kv.rsm.Raft().GetState(); !isLeader {
@@ -189,28 +214,28 @@ func (kv *KVServer) Put(args *rpc.PutArgs, reply *rpc.PutReply) {
 	// of Submit() into a PutReply: rep.(rpc.PutReply)
 
 	DPrintf("KVServer %v: [PUT] Starting\n", kv.me)
+	// shardId := shardcfg.Key2Shard(args.Key)
 
-	kv.mu.Lock()
-	shardId := shardcfg.Key2Shard(args.Key)
-	if kv.isFrozen(shardId) {
-		reply.Err = rpc.ErrWrongGroup
-		DPrintf("KVServer %v: [PUT] called with args %v, but shard %v is frozen\n", kv.me, args, shardId)
-		kv.mu.Unlock()
-		return
+	// kv.mu.Lock()
+	// if kv.isFrozen(shardId) {
+	// 	reply.Err = rpc.ErrWrongGroup
+	// 	DPrintf("KVServer %v: [PUT] called with args %v, but shard %v is frozen\n", kv.me, args, shardId)
+	// 	kv.mu.Unlock()
+	// 	return
 
-	}
-	kv.mu.Unlock()
+	// }
+	// kv.mu.Unlock()
 
-	kv.mu.Lock()
-	if lastestCmd, ok := kv.client2latestCmd[args.CId]; ok {
-		if lastestCmd.RId >= args.RId {
-			reply.Err = rpc.OK
-			DPrintf("KVServer %v: [PUT DUP] called with args %v, but already processed\n", kv.me, args)
-			kv.mu.Unlock()
-			return
-		}
-	}
-	kv.mu.Unlock()
+	// kv.mu.Lock()
+	// if lastestCmd, ok := kv.client2latestCmd[args.CId]; ok {
+	// 	if lastestCmd.RId >= args.RId {
+	// 		reply.Err = rpc.OK
+	// 		DPrintf("KVServer %v: [PUT DUP] called with args %v, but already processed\n", kv.me, args)
+	// 		kv.mu.Unlock()
+	// 		return
+	// 	}
+	// }
+	// kv.mu.Unlock()
 
 	kv.mu.Lock()
 	if _, isLeader := kv.rsm.Raft().GetState(); !isLeader {
@@ -241,17 +266,17 @@ func (kv *KVServer) Put(args *rpc.PutArgs, reply *rpc.PutReply) {
 func (kv *KVServer) FreezeShard(args *shardrpc.FreezeShardArgs, reply *shardrpc.FreezeShardReply) {
 	DPrintf("KVServer %v: [FREEZE] Starting\n", kv.me)
 
-	kv.mu.Lock()
-	if lastestCmd, ok := kv.client2latestCmd[args.CId]; ok {
-		if lastestCmd.RId >= args.RId {
+	// kv.mu.Lock()
+	// if lastestCmd, ok := kv.client2latestCmd[args.CId]; ok {
+	// 	if lastestCmd.RId >= args.RId {
 
-			reply.Err = rpc.OK
-			DPrintf("KVServer %v: [FREEZE DUP] called with args %v, but already processed\n", kv.me, args)
-			kv.mu.Unlock()
-			return
-		}
-	}
-	kv.mu.Unlock()
+	// 		reply.Err = rpc.OK
+	// 		DPrintf("KVServer %v: [FREEZE DUP] called with args %v, but already processed\n", kv.me, args)
+	// 		kv.mu.Unlock()
+	// 		return
+	// 	}
+	// }
+	// kv.mu.Unlock()
 
 	kv.mu.Lock()
 	if _, isLeader := kv.rsm.Raft().GetState(); !isLeader {
@@ -276,7 +301,7 @@ func (kv *KVServer) FreezeShard(args *shardrpc.FreezeShardArgs, reply *shardrpc.
 		DPrintf("KVServer %v: FREEZE replied OK\n", kv.me)
 	} else {
 		reply.Err = err
-		DPrintf("KVServer %v: FREEZE replied with an error\n", kv.me)
+		DPrintf("KVServer %v: FREEZE replied with an error: %v\n", kv.me, reply.Err)
 	}
 
 }
@@ -285,17 +310,17 @@ func (kv *KVServer) FreezeShard(args *shardrpc.FreezeShardArgs, reply *shardrpc.
 func (kv *KVServer) InstallShard(args *shardrpc.InstallShardArgs, reply *shardrpc.InstallShardReply) {
 	DPrintf("[KVServer %v INSTALL] Starting\n", kv.me)
 
-	kv.mu.Lock()
-	if lastestCmd, ok := kv.client2latestCmd[args.CId]; ok {
-		if lastestCmd.RId >= args.RId {
+	// kv.mu.Lock()
+	// if lastestCmd, ok := kv.client2latestCmd[args.CId]; ok {
+	// 	if lastestCmd.RId >= args.RId {
 
-			reply.Err = rpc.OK
-			DPrintf("[KVServer %v INSTALL DUP] called but already processed\n", kv.me)
-			kv.mu.Unlock()
-			return
-		}
-	}
-	kv.mu.Unlock()
+	// 		reply.Err = rpc.OK
+	// 		DPrintf("[KVServer %v INSTALL DUP] called but already processed\n", kv.me)
+	// 		kv.mu.Unlock()
+	// 		return
+	// 	}
+	// }
+	// kv.mu.Unlock()
 
 	kv.mu.Lock()
 	if _, isLeader := kv.rsm.Raft().GetState(); !isLeader {
@@ -324,17 +349,17 @@ func (kv *KVServer) InstallShard(args *shardrpc.InstallShardArgs, reply *shardrp
 
 // Delete the specified shard.
 func (kv *KVServer) DeleteShard(args *shardrpc.DeleteShardArgs, reply *shardrpc.DeleteShardReply) {
-	kv.mu.Lock()
-	if lastestCmd, ok := kv.client2latestCmd[args.CId]; ok {
-		if lastestCmd.RId >= args.RId {
+	// kv.mu.Lock()
+	// if lastestCmd, ok := kv.client2latestCmd[args.CId]; ok {
+	// 	if lastestCmd.RId >= args.RId {
 
-			reply.Err = rpc.OK
-			DPrintf("[KVServer %v DELETE DUP] called with args %v, but already processed\n", kv.me, args)
-			kv.mu.Unlock()
-			return
-		}
-	}
-	kv.mu.Unlock()
+	// 		reply.Err = rpc.OK
+	// 		DPrintf("[KVServer %v DELETE DUP] called with args %v, but already processed\n", kv.me, args)
+	// 		kv.mu.Unlock()
+	// 		return
+	// 	}
+	// }
+	// kv.mu.Unlock()
 
 	kv.mu.Lock()
 	if _, isLeader := kv.rsm.Raft().GetState(); !isLeader {
@@ -357,7 +382,7 @@ func (kv *KVServer) DeleteShard(args *shardrpc.DeleteShardArgs, reply *shardrpc.
 		DPrintf("[KVServer %v DELETE] replied OK \n", kv.me)
 	} else {
 		reply.Err = err
-		DPrintf("[KVServer %v DELETE] replied with an error \n", kv.me)
+		DPrintf("[KVServer %v DELETE] replied with an error: %v \n", kv.me, reply.Err)
 	}
 }
 
@@ -396,10 +421,14 @@ func StartServerShardGrp(servers []*labrpc.ClientEnd, gid tester.Tgid, me int, p
 	kv := &KVServer{gid: gid, me: me}
 
 	kv.shard2kvdbase = make(map[shardcfg.Tshid]map[any]KDBEntry)
-	kv.client2latestCmd = make(map[int32]Cmd)
-	kv.configNums = make(map[shardcfg.Tshid]shardcfg.Tnum)
-	kv.freeze = make([]shardcfg.Tshid, 0)
 
+	kv.client2latestCmd = make(map[int32]Cmd)
+	kv.controller2latestCmd = make(map[int32]Cmd)
+
+	kv.configNums = make(map[shardcfg.Tshid]shardcfg.Tnum)
+
+	kv.freeze = make(map[shardcfg.Tshid]bool)
+	kv.rsm = rsm.MakeRSM(servers, me, persister, maxraftstate, kv)
 	// For the initial configuration (i.e., configuration number = 0),
 	// you can hard-code it in the initialization method of shard
 	// (i.e., StartServerShardGrp) group: if gid is equal to
@@ -415,8 +444,6 @@ func StartServerShardGrp(servers []*labrpc.ClientEnd, gid tester.Tgid, me int, p
 			kv.ownedShards[i] = false
 		}
 	}
-
-	kv.rsm = rsm.MakeRSM(servers, me, persister, maxraftstate, kv)
 
 	return []tester.IService{kv, kv.rsm.Raft()}
 }

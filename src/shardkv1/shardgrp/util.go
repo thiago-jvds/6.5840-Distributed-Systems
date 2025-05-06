@@ -12,8 +12,16 @@ import (
 // Debugging
 const Debug = false
 
+const special = false
+
 func DPrintf(format string, a ...interface{}) {
 	if Debug {
+		log.Printf(format, a...)
+	}
+}
+
+func DBPrintf(format string, a ...interface{}) {
+	if special {
 		log.Printf(format, a...)
 	}
 }
@@ -57,7 +65,7 @@ func (kv *KVServer) CheckDuplicates(clientId int32, requestId int) (bool, KDBEnt
 
 func (kv *KVServer) CheckDuplicatesShard(clientId int32, requestId int) (bool, ShardEntry) {
 
-	op, ok := kv.client2latestCmd[clientId]
+	op, ok := kv.controller2latestCmd[clientId]
 
 	if !ok || op.RId < requestId {
 		return false, ShardEntry{}
@@ -68,14 +76,9 @@ func (kv *KVServer) CheckDuplicatesShard(clientId int32, requestId int) (bool, S
 
 func (kv *KVServer) isFrozen(shardId shardcfg.Tshid) bool {
 
-	for _, shId := range kv.freeze {
+	isIn, ok := kv.freeze[shardId]
 
-		if shId == shardId {
-			return true
-		}
-	}
-
-	return false
+	return ok && isIn
 }
 
 func (kv *KVServer) encodeState(shardId shardcfg.Tshid) ([]byte, error) {

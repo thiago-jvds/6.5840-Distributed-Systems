@@ -10,14 +10,14 @@ import (
 	"time"
 
 	"6.5840/kvraft1/rsm"
-	"6.5840/kvsrv1"
+	kvsrv "6.5840/kvsrv1"
 	"6.5840/kvsrv1/rpc"
-	"6.5840/kvtest1"
+	kvtest "6.5840/kvtest1"
 	"6.5840/labrpc"
 	"6.5840/shardkv1/shardcfg"
 	"6.5840/shardkv1/shardctrler"
 	"6.5840/shardkv1/shardgrp"
-	"6.5840/tester1"
+	tester "6.5840/tester1"
 )
 
 type Test struct {
@@ -268,7 +268,7 @@ func (ts *Test) partitionCtrler(ck kvtest.IKVClerk, gid tester.Tgid, ka, va []st
 				state = LEAVE
 				ts.leaveGroups(sck, []tester.Tgid{ngid})
 			} else {
-				//log.Printf("%v: deposed", sck.Id())
+				// log.Printf("%v: deposed", sck)
 				return
 			}
 		}
@@ -279,9 +279,10 @@ func (ts *Test) partitionCtrler(ck kvtest.IKVClerk, gid tester.Tgid, ka, va []st
 
 	r := rand.Int() % RAND
 	d := time.Duration(r) * time.Millisecond
+	// t := time.Now()
 	time.Sleep(d)
 
-	//log.Printf("shutdown gid %d after %dms %v", gid, r, time.Now().Sub(t))
+	// log.Printf("shutdown gid %d after %dms %v", gid, r, time.Since(t))
 
 	ts.Group(gid).Shutdown()
 
@@ -289,7 +290,7 @@ func (ts *Test) partitionCtrler(ck kvtest.IKVClerk, gid tester.Tgid, ka, va []st
 	// gid is down
 	time.Sleep(1000 * time.Millisecond)
 
-	//log.Printf("disconnect sck %v ngid %d num %d state %d", d, ngid, num, state)
+	// log.Printf("disconnect sck %v ngid %d num %d state %d", d, ngid, num, state)
 
 	// partition controller
 	clnt.DisconnectAll()
@@ -299,7 +300,7 @@ func (ts *Test) partitionCtrler(ck kvtest.IKVClerk, gid tester.Tgid, ka, va []st
 		time.Sleep(NSEC * time.Second)
 	}
 
-	//log.Printf("startservers %v lease expired %t", time.Now().Sub(t), ts.leases)
+	// log.Printf("startservers %v lease expired %t", time.Now().Sub(t), ts.leases)
 
 	ts.Group(gid).StartServers()
 
@@ -317,7 +318,7 @@ func (ts *Test) partitionCtrler(ck kvtest.IKVClerk, gid tester.Tgid, ka, va []st
 		ts.Fatalf("didn't recover; expected %d > %d", num, cfg.Num)
 	}
 
-	//log.Printf("%v: recovered %v %v %v", sck0.Id(), time.Now().Sub(t), s, cfg)
+	// log.Printf("%v: recovered %v %v %v", sck0, time.Since(t), s, cfg)
 
 	present := cfg.IsMember(ngid)
 	if (state == JOIN && !present) || (state == LEAVE && present) {
@@ -338,13 +339,13 @@ func (ts *Test) partitionCtrler(ck kvtest.IKVClerk, gid tester.Tgid, ka, va []st
 
 	}
 
-	//log.Printf("reconnected %v", time.Now().Sub(t))
+	// log.Printf("reconnected %v", time.Since(t))
 
 	for i := 0; i < len(ka); i++ {
 		ts.CheckGet(ck, ka[i], va[i], rpc.Tversion(1))
 	}
 
-	//log.Printf("done get %v", time.Now().Sub(t))
+	// log.Printf("done get %v", time.Now().Sub(t))
 
 	ts.Config.DeleteClient(clnt)
 	ts.Config.DeleteClient(clnt0)

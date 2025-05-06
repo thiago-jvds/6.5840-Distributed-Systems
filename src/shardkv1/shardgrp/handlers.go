@@ -14,13 +14,7 @@ func (kv *KVServer) handleGetRequest(req *rpc.GetArgs) *rpc.GetReply {
 	key := req.Key
 	shardId := shardcfg.Key2Shard(key)
 
-	if !kv.ownedShards[shardId] {
-		reply.Err = rpc.ErrWrongGroup
-		return &reply
-	}
-
 	ok, trueVal := kv.CheckDuplicates(req.CId, req.RId)
-
 	if ok {
 		reply.Value = trueVal.Value
 		reply.Err = rpc.OK
@@ -34,6 +28,11 @@ func (kv *KVServer) handleGetRequest(req *rpc.GetArgs) *rpc.GetReply {
 		}
 
 		kv.client2latestCmd[req.CId] = cmd
+		return &reply
+	}
+
+	if !kv.ownedShards[shardId] || kv.isFrozen(shardId) {
+		reply.Err = rpc.ErrWrongGroup
 		return &reply
 	}
 
@@ -61,15 +60,9 @@ func (kv *KVServer) handlePutRequest(req *rpc.PutArgs) *rpc.PutReply {
 	key := req.Key
 	val := req.Value
 	proposedVersion := req.Version
-
-	reply := rpc.PutReply{}
-
 	shardId := shardcfg.Key2Shard(key)
 
-	if !kv.ownedShards[shardId] {
-		reply.Err = rpc.ErrWrongGroup
-		return &reply
-	}
+	reply := rpc.PutReply{}
 
 	ok, trueVal := kv.CheckDuplicates(req.CId, req.RId)
 	if ok {
@@ -82,7 +75,12 @@ func (kv *KVServer) handlePutRequest(req *rpc.PutArgs) *rpc.PutReply {
 			Version: trueVal.Version,
 		}
 		kv.client2latestCmd[req.CId] = cmd
-		DPrintf("[GET] GOT FROM DUP\n")
+		DPrintf("[PUT] GOT FROM DUP\n")
+		return &reply
+	}
+
+	if !kv.ownedShards[shardId] || kv.isFrozen(shardId) {
+		reply.Err = rpc.ErrWrongGroup
 		return &reply
 	}
 
@@ -125,36 +123,13 @@ func (kv *KVServer) handlePutRequest(req *rpc.PutArgs) *rpc.PutReply {
 func (kv *KVServer) handleFreezeRequest(req *shardrpc.FreezeShardArgs) *shardrpc.FreezeShardReply {
 	reply := shardrpc.FreezeShardReply{}
 
-	// if shard is not owned by shardgrp
-	if !kv.ownedShards[req.Shard] {
-		DPrintf("[FREEZE] Not owner for shard %v at %v\n", req.Shard, kv.gid)
-		reply.Err = rpc.ErrWrongGroup
-		reply.Num = kv.configNums[req.Shard]
-		return &reply
-	}
-	// invalid configuration
+	// invalid configuration, ignore
+	// if it's the same config num, try to freeze again
 	if kv.configNums[req.Shard] > req.Num {
-		DPrintf("[FREEZE] Incorrect config num\n")
-		reply.Err = rpc.ErrWrongGroup
-		reply.Num = kv.configNums[req.Shard]
-		return &reply
-	}
-
-	// check for duplicates req
-	ok, stateEntry := kv.CheckDuplicatesShard(req.CId, req.RId)
-	if ok {
-		DPrintf("[FREEZE] Duplicate request\n")
+		DPrintf("[FREEZE] already processed \n")
 		reply.Err = rpc.OK
-		reply.Num = stateEntry.Num
-
-		state, err := kv.encodeState(req.Shard)
-
-		if err != nil {
-			reply.Err = rpc.ErrWrongGroup
-			return &reply
-		}
-
-		reply.State = state
+		reply.Num = kv.configNums[req.Shard]
+		reply.State = nil
 		return &reply
 	}
 
@@ -166,11 +141,10 @@ func (kv *KVServer) handleFreezeRequest(req *shardrpc.FreezeShardArgs) *shardrpc
 	}
 
 	// freezes it
-	kv.freeze = append(kv.freeze, req.Shard)
-	DPrintf("Freeze arr at %v: %v\n", kv.me, kv.freeze)
+	kv.freeze[req.Shard] = true
+	DPrintf("Freeze arr at %v for shard %v: %v\n", kv.me, req.Shard, kv.freeze)
 
-	// loses ownership once freeze happens
-	kv.ownedShards[req.Shard] = false
+	// update config num for freeze
 	kv.configNums[req.Shard] = req.Num
 
 	reply.Err = rpc.OK
@@ -178,11 +152,13 @@ func (kv *KVServer) handleFreezeRequest(req *shardrpc.FreezeShardArgs) *shardrpc
 	reply.State = state
 
 	cmd := Cmd{
-		CId: req.CId,
-		RId: req.RId,
+		CId:   req.CId,
+		RId:   req.RId,
+		Shard: req.Shard,
+		Num:   req.Num,
 	}
 
-	kv.client2latestCmd[req.CId] = cmd
+	kv.controller2latestCmd[req.CId] = cmd
 
 	return &reply
 }
@@ -191,17 +167,10 @@ func (kv *KVServer) handleInstallRequest(req *shardrpc.InstallShardArgs) *shardr
 
 	reply := shardrpc.InstallShardReply{}
 
-	ok, _ := kv.CheckDuplicatesShard(req.CId, req.RId)
-	if ok {
-		DPrintf("[INSTALL] Duplicate request\n")
-		reply.Err = rpc.OK
-		return &reply
-	}
-
-	// invalid configuration
-	if kv.configNums[req.Shard] > req.Num {
+	// invalid configuration, ignore
+	if kv.configNums[req.Shard] >= req.Num {
 		DPrintf("[INSTALL] Incorrect config num\n")
-		reply.Err = rpc.ErrWrongGroup
+		reply.Err = rpc.OK
 		return &reply
 	}
 
@@ -215,14 +184,20 @@ func (kv *KVServer) handleInstallRequest(req *shardrpc.InstallShardArgs) *shardr
 		}
 	} else {
 		DPrintf("NOTHING IN INSTALL STATE\n")
-		kv.shard2kvdbase[req.Shard] = make(map[any]KDBEntry)
+		// kv.shard2kvdbase[req.Shard] = make(map[any]KDBEntry)
 	}
+
+	// install succeeded
+	reply.Err = rpc.OK
 
 	// gains ownership
 	kv.ownedShards[req.Shard] = true
-	kv.configNums[req.Shard] = req.Num
 
-	reply.Err = rpc.OK
+	// make sure shard is not frozen
+	kv.freeze[req.Shard] = false
+
+	// update config num for install
+	kv.configNums[req.Shard] = req.Num
 
 	cmd := Cmd{
 		CId:   req.CId,
@@ -239,30 +214,34 @@ func (kv *KVServer) handleInstallRequest(req *shardrpc.InstallShardArgs) *shardr
 func (kv *KVServer) handleDeleteRequest(req *shardrpc.DeleteShardArgs) *shardrpc.DeleteShardReply {
 	reply := shardrpc.DeleteShardReply{}
 
-	ok, _ := kv.CheckDuplicatesShard(req.CId, req.RId)
-	if ok {
-		DPrintf("[DELETE] Duplicate request\n")
+	if kv.configNums[req.Shard] > req.Num {
+		DPrintf("[DELETE] Incorrect config num\n")
 		reply.Err = rpc.OK
 		return &reply
 	}
 
-	if kv.configNums[req.Shard] > req.Num {
-		DPrintf("[DELETE] Incorrect config num\n")
-		reply.Err = rpc.ErrWrongGroup
+	if kv.configNums[req.Shard] == req.Num && !kv.ownedShards[req.Shard] {
+		DPrintf("[DELETE] Delete already processed \n")
+		reply.Err = rpc.OK
 		return &reply
 	}
 
-	// if shard is not frozen
+	// if shard is not frozen -- probably optional
 	if !kv.isFrozen(req.Shard) {
 		DPrintf("[DELETE] Not frozen shard %v\n", req.Shard)
 		reply.Err = rpc.ErrWrongGroup
 		return &reply
 	}
 
-	kv.shard2kvdbase[req.Shard] = make(map[any]KDBEntry)
+	// finally update gidOld Num
 	kv.configNums[req.Shard] = req.Num
-	kv.freeze = removeShardFromFreeze(kv.freeze, req.Shard)
+
+	// delete was complete
+	kv.shard2kvdbase[req.Shard] = make(map[any]KDBEntry)
 	reply.Err = rpc.OK
+
+	kv.freeze[req.Shard] = false
+	kv.ownedShards[req.Shard] = false
 
 	cmd := Cmd{
 		CId:   req.CId,
@@ -271,7 +250,7 @@ func (kv *KVServer) handleDeleteRequest(req *shardrpc.DeleteShardArgs) *shardrpc
 		Num:   req.Num,
 	}
 
-	kv.client2latestCmd[req.CId] = cmd
+	kv.controller2latestCmd[req.CId] = cmd
 
 	return &reply
 }
