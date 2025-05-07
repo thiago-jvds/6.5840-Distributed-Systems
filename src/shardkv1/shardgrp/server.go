@@ -266,18 +266,6 @@ func (kv *KVServer) Put(args *rpc.PutArgs, reply *rpc.PutReply) {
 func (kv *KVServer) FreezeShard(args *shardrpc.FreezeShardArgs, reply *shardrpc.FreezeShardReply) {
 	DPrintf("KVServer %v: [FREEZE] Starting\n", kv.me)
 
-	// kv.mu.Lock()
-	// if lastestCmd, ok := kv.client2latestCmd[args.CId]; ok {
-	// 	if lastestCmd.RId >= args.RId {
-
-	// 		reply.Err = rpc.OK
-	// 		DPrintf("KVServer %v: [FREEZE DUP] called with args %v, but already processed\n", kv.me, args)
-	// 		kv.mu.Unlock()
-	// 		return
-	// 	}
-	// }
-	// kv.mu.Unlock()
-
 	kv.mu.Lock()
 	if _, isLeader := kv.rsm.Raft().GetState(); !isLeader {
 		reply.Err = rpc.ErrWrongLeader

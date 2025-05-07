@@ -52,12 +52,8 @@ func (ck *Clerk) Get(key string) (string, rpc.Tversion, rpc.Err) {
 		shard := shardcfg.Key2Shard(key)
 
 		gid, _, _ := oldcfg.GidServers(shard)
-		clerk, ok := ck.clerks[gid]
 
-		if !ok {
-			ck.changeClerks(oldcfg)
-			clerk = ck.clerks[gid]
-		}
+		clerk := ck.getClerks(gid, oldcfg)
 
 		val, version, err := clerk.Get(key)
 
@@ -69,19 +65,15 @@ func (ck *Clerk) Get(key string) (string, rpc.Tversion, rpc.Err) {
 			newCfg := ck.sck.Query()
 
 			if oldcfg.String() == newCfg.String() {
-				oldcfg = newCfg
-				ck.changeClerks(newCfg)
 				return "", 0, rpc.ErrNoKey
 			}
 
 			oldcfg = newCfg
-			ck.changeClerks(newCfg)
 			continue
 		}
 
 		if err == rpc.ErrWrongGroup {
 			oldcfg = ck.sck.Query()
-			ck.changeClerks(oldcfg)
 			continue
 		}
 	}
@@ -100,12 +92,7 @@ func (ck *Clerk) Put(key string, value string, version rpc.Tversion) rpc.Err {
 
 		gid, _, _ := oldcfg.GidServers(shard)
 
-		clerk, ok := ck.clerks[gid]
-
-		if !ok {
-			ck.changeClerks(oldcfg)
-			clerk = ck.clerks[gid]
-		}
+		clerk := ck.getClerks(gid, oldcfg)
 
 		err := clerk.Put(key, value, version)
 
@@ -123,13 +110,10 @@ func (ck *Clerk) Put(key string, value string, version rpc.Tversion) rpc.Err {
 			newCfg := ck.sck.Query()
 
 			if oldcfg.String() == newCfg.String() {
-				oldcfg = newCfg
-				ck.changeClerks(newCfg)
 				return rpc.ErrNoKey
 			}
 
 			oldcfg = newCfg
-			ck.changeClerks(newCfg)
 			continue
 		}
 
@@ -139,18 +123,21 @@ func (ck *Clerk) Put(key string, value string, version rpc.Tversion) rpc.Err {
 
 		if err == rpc.ErrWrongGroup {
 			oldcfg = ck.sck.Query()
-			ck.changeClerks(oldcfg)
 			continue
 		}
 
 	}
 }
 
-func (ck *Clerk) changeClerks(newConfig *shardcfg.ShardConfig) {
+func (ck *Clerk) getClerks(gid tester.Tgid, cfg *shardcfg.ShardConfig) *shardgrp.Clerk {
+	ckG, ok := ck.clerks[gid]
 
-	ck.clerks = make(map[tester.Tgid]*shardgrp.Clerk)
-
-	for gid, servers := range newConfig.Groups {
-		ck.clerks[gid] = shardgrp.MakeClerk(ck.clnt, servers)
+	if ok {
+		return ckG
 	}
+
+	servers := cfg.Groups[gid]
+	ckG = shardgrp.MakeClerk(ck.clnt, servers)
+	ck.clerks[gid] = ckG
+	return ckG
 }

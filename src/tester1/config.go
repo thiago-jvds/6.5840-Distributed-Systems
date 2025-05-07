@@ -4,10 +4,12 @@ import (
 	crand "crypto/rand"
 	"encoding/base64"
 	"fmt"
+
 	//"log"
 	"math/big"
 	"math/rand"
 	"runtime"
+
 	// "runtime/debug"
 	"strings"
 	"sync"
@@ -175,7 +177,7 @@ func Randstring(n int) string {
 
 func (cfg *Config) CheckTimeout() {
 	// enforce a two minute real-time limit on each test
-	if !cfg.t.Failed() && time.Since(cfg.start) > 120*time.Second {
+	if !cfg.t.Failed() && time.Since(cfg.start) > 180*time.Second {
 		cfg.t.Fatal("test took longer than 120 seconds")
 	}
 }

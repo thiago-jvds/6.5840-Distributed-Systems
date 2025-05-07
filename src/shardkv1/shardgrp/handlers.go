@@ -125,40 +125,24 @@ func (kv *KVServer) handleFreezeRequest(req *shardrpc.FreezeShardArgs) *shardrpc
 
 	// invalid configuration, ignore
 	// if it's the same config num, try to freeze again
-	if kv.configNums[req.Shard] > req.Num {
-		DPrintf("[FREEZE] already processed \n")
-		reply.Err = rpc.OK
+	if kv.configNums[req.Shard] >= req.Num {
+		DPrintf("[FREEZE] already processed: shard %v in kv %v\n", req.Shard, kv.me)
+		reply.Err = rpc.ErrVersion
 		reply.Num = kv.configNums[req.Shard]
-		reply.State = nil
 		return &reply
 	}
 
 	state, err := kv.encodeState(req.Shard)
 
 	if err != nil {
-		reply.Err = rpc.ErrWrongGroup
-		return &reply
+		panic("Error in encoding state")
 	}
 
 	// freezes it
 	kv.freeze[req.Shard] = true
-	DPrintf("Freeze arr at %v for shard %v: %v\n", kv.me, req.Shard, kv.freeze)
-
-	// update config num for freeze
-	kv.configNums[req.Shard] = req.Num
 
 	reply.Err = rpc.OK
-	reply.Num = req.Num // not sure
 	reply.State = state
-
-	cmd := Cmd{
-		CId:   req.CId,
-		RId:   req.RId,
-		Shard: req.Shard,
-		Num:   req.Num,
-	}
-
-	kv.controller2latestCmd[req.CId] = cmd
 
 	return &reply
 }
@@ -199,15 +183,6 @@ func (kv *KVServer) handleInstallRequest(req *shardrpc.InstallShardArgs) *shardr
 	// update config num for install
 	kv.configNums[req.Shard] = req.Num
 
-	cmd := Cmd{
-		CId:   req.CId,
-		RId:   req.RId,
-		Shard: req.Shard,
-		Num:   req.Num,
-	}
-
-	kv.client2latestCmd[req.CId] = cmd
-
 	return &reply
 }
 
@@ -216,20 +191,7 @@ func (kv *KVServer) handleDeleteRequest(req *shardrpc.DeleteShardArgs) *shardrpc
 
 	if kv.configNums[req.Shard] > req.Num {
 		DPrintf("[DELETE] Incorrect config num\n")
-		reply.Err = rpc.OK
-		return &reply
-	}
-
-	if kv.configNums[req.Shard] == req.Num && !kv.ownedShards[req.Shard] {
-		DPrintf("[DELETE] Delete already processed \n")
-		reply.Err = rpc.OK
-		return &reply
-	}
-
-	// if shard is not frozen -- probably optional
-	if !kv.isFrozen(req.Shard) {
-		DPrintf("[DELETE] Not frozen shard %v\n", req.Shard)
-		reply.Err = rpc.ErrWrongGroup
+		reply.Err = rpc.ErrVersion
 		return &reply
 	}
 
@@ -238,19 +200,9 @@ func (kv *KVServer) handleDeleteRequest(req *shardrpc.DeleteShardArgs) *shardrpc
 
 	// delete was complete
 	kv.shard2kvdbase[req.Shard] = make(map[any]KDBEntry)
-	reply.Err = rpc.OK
-
 	kv.freeze[req.Shard] = false
 	kv.ownedShards[req.Shard] = false
 
-	cmd := Cmd{
-		CId:   req.CId,
-		RId:   req.RId,
-		Shard: req.Shard,
-		Num:   req.Num,
-	}
-
-	kv.controller2latestCmd[req.CId] = cmd
-
+	reply.Err = rpc.OK
 	return &reply
 }

@@ -78,7 +78,7 @@ func (rsm *RSM) reader() {
 			if msg.CommandValid {
 				command := msg.Command.(Op)
 
-				DPrintf("READER apply op.id: %v, o p.req: %v, op.me: %v, index: %v, lastApplied: %v\n", command.Id, command.Req, command.Me, msg.CommandIndex, rsm.lastAppliedIndex)
+				// DPrintf("READER apply op.id: %v, o p.req: %v, op.me: %v, index: %v, lastApplied: %v\n", command.Id, command.Req, command.Me, msg.CommandIndex, rsm.lastAppliedIndex)
 
 				if rsm.lastAppliedIndex >= msg.CommandIndex {
 					rsm.mu.Unlock()
@@ -97,7 +97,7 @@ func (rsm *RSM) reader() {
 			}
 
 			if msg.SnapshotValid {
-				DPrintf("READER RSM %v: Snapshotting at index %d\n", rsm.me, msg.SnapshotIndex)
+				// DPrintf("READER RSM %v: Snapshotting at index %d\n", rsm.me, msg.SnapshotIndex)
 				rsm.recover(msg.Snapshot)
 				rsm.lastAppliedIndex = msg.SnapshotIndex
 			}
@@ -173,7 +173,7 @@ func (rsm *RSM) checkSnapshot() {
 
 		rsm.rf.Snapshot(rsm.lastAppliedIndex, snapshot)
 
-		DPrintf("RSM %v: Snapshotting at index %d\n", rsm.me, rsm.lastAppliedIndex)
+		// DPrintf("RSM %v: Snapshotting at index %d\n", rsm.me, rsm.lastAppliedIndex)
 
 	}
 }
@@ -191,15 +191,15 @@ func (rsm *RSM) Submit(req any) (rpc.Err, any) {
 	rsm.opNum++
 
 	oldIndex, oldTerm, isLeader := rsm.rf.Start(op)
-	rsm.mu.Unlock()
-
 	if !isLeader {
+		rsm.mu.Unlock()
 		return rpc.ErrWrongLeader, nil
 	}
+	rsm.mu.Unlock()
 
 	for !rsm.killed() {
 
-		DPrintf("SUBMIT: trying to submit op.id: %v, op.req: %v, op.me: %v\n", op.Id, op.Req, op.Me)
+		// DPrintf("SUBMIT: trying to submit op.id: %v, op.req: %v, op.me: %v\n", op.Id, op.Req, op.Me)
 		rsm.mu.Lock()
 
 		curTerm, isLeader := rsm.rf.GetState()
@@ -216,13 +216,13 @@ func (rsm *RSM) Submit(req any) (rpc.Err, any) {
 
 			if index == oldIndex {
 				rsm.mu.Unlock()
-				DPrintf("SUBMIT: submitting op.id: %v, op.req: %v, op.me: %v\n", op.Id, op.Req, op.Me)
+				// DPrintf("SUBMIT: submitting op.id: %v, op.req: %v, op.me: %v\n", op.Id, op.Req, op.Me)
 				return rpc.OK, res
 			}
 			if index <= rsm.lastAppliedIndex {
 				rsm.mu.Unlock()
-				// DPrintf("SUBMIT:/ submitting op.id: %v, op.req: %v, op.me: %v\n", op.Id, op.Req, op.Me)
-				return rpc.ErrWrongLeader, res
+				DPrintf("SUBMIT: submitting op.id: %v, op.req: %v, op.me: %v\n", op.Id, op.Req, op.Me)
+				continue
 			}
 
 		}

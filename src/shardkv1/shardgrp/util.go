@@ -11,7 +11,6 @@ import (
 
 // Debugging
 const Debug = false
-
 const special = false
 
 func DPrintf(format string, a ...interface{}) {

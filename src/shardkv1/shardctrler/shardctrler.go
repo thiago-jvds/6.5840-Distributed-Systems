@@ -5,6 +5,8 @@ package shardctrler
 //
 
 import (
+	"math/rand"
+
 	kvsrv "6.5840/kvsrv1"
 	"6.5840/kvsrv1/rpc"
 	kvtest "6.5840/kvtest1"
@@ -22,6 +24,8 @@ type ShardCtrler struct {
 	// Your data here.
 	curConfig  *shardcfg.ShardConfig
 	nextConfig *shardcfg.ShardConfig
+	Id         int32
+	clerks     map[tester.Tgid]*shardgrp.Clerk
 }
 
 // Make a ShardCltler, which stores its state in a kvsrv.
@@ -30,8 +34,26 @@ func MakeShardCtrler(clnt *tester.Clnt) *ShardCtrler {
 	srv := tester.ServerName(tester.GRP0, 0)
 	sck.IKVClerk = kvsrv.MakeClerk(clnt, srv)
 	sck.curConfig = nil
+	sck.clerks = make(map[tester.Tgid]*shardgrp.Clerk)
+	sck.Id = rand.Int31()
 	// Your code here.
 	return sck
+}
+
+func (sck *ShardCtrler) getClerk(gid tester.Tgid, new *shardcfg.ShardConfig) *shardgrp.Clerk {
+	ck, ok := sck.clerks[gid]
+
+	if !ok {
+		servers := sck.curConfig.Groups[gid]
+
+		if len(servers) == 0 {
+			servers = new.Groups[gid]
+		}
+		sck.clerks[gid] = shardgrp.MakeClerk(sck.clnt, servers)
+		ck = sck.clerks[gid]
+	}
+
+	return ck
 }
 
 // The tester calls InitController() before starting a new
@@ -102,6 +124,7 @@ func (sck *ShardCtrler) InitConfig(cfg *shardcfg.ShardConfig) {
 // controller.
 func (sck *ShardCtrler) ChangeConfigTo(new *shardcfg.ShardConfig) {
 	shardgrp.DPrintf("Beginning ChnageConfigTo\n")
+
 	sck.curConfig = sck.Query()
 	if new.Num <= sck.curConfig.Num {
 		shardgrp.DPrintf("Wrong num at ChangeConfig\n")
@@ -109,6 +132,31 @@ func (sck *ShardCtrler) ChangeConfigTo(new *shardcfg.ShardConfig) {
 	}
 
 	sck.postNewConfig(new)
+
+	oldStates := make(map[shardcfg.Tshid][]byte)
+	for shardId := 0; shardId < shardcfg.NShards; shardId++ {
+		gidOld := sck.curConfig.Shards[shardId]
+		gidNew := new.Shards[shardId]
+
+		shId := shardcfg.Tshid(shardId)
+
+		if gidOld == gidNew {
+			continue
+		}
+
+		ck := sck.getClerk(gidOld, new)
+
+		shardgrp.DPrintf("Freezing shard %v in group %v sck %v\n", shId, gidOld, sck.Id)
+		oldShardState, err := ck.FreezeShard(shId, new.Num, sck.Id)
+
+		if err != rpc.OK {
+			panic("Err in freeze ctrl shard\n")
+
+		}
+
+		oldStates[shId] = oldShardState
+
+	}
 
 	for shardId := 0; shardId < shardcfg.NShards; shardId++ {
 		gidOld := sck.curConfig.Shards[shardId]
@@ -120,21 +168,28 @@ func (sck *ShardCtrler) ChangeConfigTo(new *shardcfg.ShardConfig) {
 			continue
 		}
 
-		oldShardState, err := sck.freezeShard(shId, new.Num, gidOld)
-
-		if err != rpc.OK {
-			panic("Err in freeze ctrl shard\n")
-
-		}
-
-		err = sck.installShard(shId, oldShardState, new.Num, gidNew, new)
+		ck := sck.getClerk(gidNew, new)
+		err := ck.InstallShard(shId, oldStates[shId], new.Num)
 
 		if err != rpc.OK {
 			panic("Err in install ctrl shard\n")
 
 		}
 
-		err = sck.deleteShard(shId, new.Num, gidOld)
+	}
+
+	for shardId := 0; shardId < shardcfg.NShards; shardId++ {
+		gidOld := sck.curConfig.Shards[shardId]
+		gidNew := new.Shards[shardId]
+
+		shId := shardcfg.Tshid(shardId)
+
+		if gidOld == gidNew {
+			continue
+		}
+
+		ck := sck.getClerk(gidOld, new)
+		err := ck.DeleteShard(shId, new.Num)
 
 		if err != rpc.OK {
 			shardgrp.DPrintf("err: %v\n", err)
@@ -153,54 +208,54 @@ func (sck *ShardCtrler) ChangeConfigTo(new *shardcfg.ShardConfig) {
 }
 
 // Freeze the shard in the current config and return its state
-func (sck *ShardCtrler) freezeShard(shardId shardcfg.Tshid, num shardcfg.Tnum, gidOld tester.Tgid) ([]byte, rpc.Err) {
-	ck := shardgrp.MakeClerk(sck.clnt, sck.curConfig.Groups[gidOld])
+// func (sck *ShardCtrler) freezeShard(shardId shardcfg.Tshid, num shardcfg.Tnum, gidOld tester.Tgid) ([]byte, rpc.Err) {
+// 	ck := shardgrp.MakeClerk(sck.clnt, sck.curConfig.Groups[gidOld])
 
-	for {
-		state, err := ck.FreezeShard(shardId, num)
+// 	for {
+// 		state, err := ck.FreezeShard(shardId, num)
 
-		if err == rpc.OK {
-			return state, err
-		}
+// 		if err == rpc.OK {
+// 			return state, err
+// 		}
 
-		if err == rpc.ErrWrongGroup {
-			sck.curConfig = sck.Query()
-			ck = shardgrp.MakeClerk(sck.clnt, sck.curConfig.Groups[gidOld])
-		}
-	}
-}
+// 		if err == rpc.ErrWrongGroup {
+// 			sck.curConfig = sck.Query()
+// 			ck = shardgrp.MakeClerk(sck.clnt, sck.curConfig.Groups[gidOld])
+// 		}
+// 	}
+// }
 
-// Install the shard state in the new config
-func (sck *ShardCtrler) installShard(shardId shardcfg.Tshid, state []byte, num shardcfg.Tnum, gidNew tester.Tgid, new *shardcfg.ShardConfig) rpc.Err {
-	ck := shardgrp.MakeClerk(sck.clnt, new.Groups[gidNew])
+// // Install the shard state in the new config
+// func (sck *ShardCtrler) installShard(shardId shardcfg.Tshid, state []byte, num shardcfg.Tnum, gidNew tester.Tgid, new *shardcfg.ShardConfig) rpc.Err {
+// 	ck := shardgrp.MakeClerk(sck.clnt, new.Groups[gidNew])
 
-	for {
-		err := ck.InstallShard(shardId, state, num)
+// 	for {
+// 		err := ck.InstallShard(shardId, state, num)
 
-		if err == rpc.OK {
-			return err
-		}
+// 		if err == rpc.OK {
+// 			return err
+// 		}
 
-	}
-}
+// 	}
+// }
 
-// Delete the shard in the old config
-func (sck *ShardCtrler) deleteShard(shardId shardcfg.Tshid, num shardcfg.Tnum, gidOld tester.Tgid) rpc.Err {
-	ck := shardgrp.MakeClerk(sck.clnt, sck.curConfig.Groups[gidOld])
+// // Delete the shard in the old config
+// func (sck *ShardCtrler) deleteShard(shardId shardcfg.Tshid, num shardcfg.Tnum, gidOld tester.Tgid) rpc.Err {
+// 	ck := shardgrp.MakeClerk(sck.clnt, sck.curConfig.Groups[gidOld])
 
-	for {
-		err := ck.DeleteShard(shardId, num)
+// 	for {
+// 		err := ck.DeleteShard(shardId, num)
 
-		if err == rpc.OK {
-			return err
-		}
+// 		if err == rpc.OK {
+// 			return err
+// 		}
 
-		if err == rpc.ErrWrongGroup {
-			sck.curConfig = sck.Query()
-			ck = shardgrp.MakeClerk(sck.clnt, sck.curConfig.Groups[gidOld])
-		}
-	}
-}
+// 		if err == rpc.ErrWrongGroup {
+// 			sck.curConfig = sck.Query()
+// 			ck = shardgrp.MakeClerk(sck.clnt, sck.curConfig.Groups[gidOld])
+// 		}
+// 	}
+// }
 
 // Replace config with new one
 func (sck *ShardCtrler) postNewConfig(new *shardcfg.ShardConfig) {
