@@ -11,7 +11,7 @@ import (
 	tester "6.5840/tester1"
 )
 
-const waitTime = 1 * time.Millisecond
+const waitTime = 100 * time.Microsecond
 const waitTimeCtrler = 25 * time.Millisecond
 const timeoutTime = 800 * time.Millisecond
 
@@ -220,8 +220,6 @@ func (ck *Clerk) FreezeShard(s shardcfg.Tshid, num shardcfg.Tnum, sckId int32) (
 				return nil, rpc.OK
 			}
 
-			panic("lol")
-
 		}
 
 		// call failed, try next server
@@ -256,7 +254,7 @@ func (ck *Clerk) InstallShard(s shardcfg.Tshid, state []byte, num shardcfg.Tnum)
 				return reply.Err
 			}
 
-			time.Sleep(waitTimeCtrler)
+			// time.Sleep(waitTimeCtrler)
 			continue
 
 		}
@@ -291,7 +289,7 @@ func (ck *Clerk) DeleteShard(s shardcfg.Tshid, num shardcfg.Tnum) rpc.Err {
 				DPrintf("[DELETE] returned OK at %s\n", ck.servers[ck.lastLeader%len(ck.servers)])
 				return reply.Err
 			}
-			time.Sleep(waitTimeCtrler)
+			// time.Sleep(waitTimeCtrler)
 			continue
 		}
 

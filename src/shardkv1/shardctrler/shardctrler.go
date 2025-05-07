@@ -6,6 +6,7 @@ package shardctrler
 
 import (
 	"math/rand"
+	"time"
 
 	kvsrv "6.5840/kvsrv1"
 	"6.5840/kvsrv1/rpc"
@@ -62,6 +63,7 @@ func (sck *ShardCtrler) getClerk(gid tester.Tgid, new *shardcfg.ShardConfig) *sh
 func (sck *ShardCtrler) InitController() {
 	shardgrp.DPrintf("ShardCtrler: InitController\n")
 	for {
+		time.Sleep(1 * time.Millisecond)
 
 		cfgId, _, err := sck.IKVClerk.Get("config")
 
@@ -77,7 +79,8 @@ func (sck *ShardCtrler) InitController() {
 
 	shardgrp.DPrintf("COmpleted getting curConfig\n")
 	for {
-
+		time.Sleep(1 * time.Millisecond)
+		// shardgrp.DBPrintf("ShardCtrler: InitController: curConfig num is %v\n", sck.curConfig.Num)
 		cfgId, _, err := sck.IKVClerk.Get("nextConfig")
 
 		if err == rpc.ErrNoKey {
@@ -89,8 +92,8 @@ func (sck *ShardCtrler) InitController() {
 			break
 		}
 	}
-	shardgrp.DPrintf("ShardCtrler: InitController: curConfig num is %v\n", sck.curConfig.Num)
-	shardgrp.DPrintf("ShardCtrler: InitController: nextConfig is num %v\n", sck.nextConfig.Num)
+	// shardgrp.DPrintf("ShardCtrler: InitController: curConfig num is %v\n", sck.curConfig.Num)
+	// shardgrp.DPrintf("ShardCtrler: InitController: nextConfig is num %v\n", sck.nextConfig.Num)
 	if sck.nextConfig.Num > sck.curConfig.Num {
 		shardgrp.DPrintf("ShardCtrler: InitController: nextConfig is %v\n", sck.nextConfig)
 		sck.ChangeConfigTo(sck.nextConfig)
@@ -107,11 +110,29 @@ func (sck *ShardCtrler) InitConfig(cfg *shardcfg.ShardConfig) {
 	configId := cfg.String()
 
 	for {
+		time.Sleep(1 * time.Millisecond)
+
 		err := sck.IKVClerk.Put("config", configId, 0)
 
 		if err == rpc.OK {
 
 			sck.curConfig = cfg.Copy()
+			break
+		}
+	}
+
+	new := &shardcfg.ShardConfig{
+		Num: -1,
+	}
+
+	mockConfigId := new.String()
+	for {
+		time.Sleep(1 * time.Millisecond)
+		// shardgrp.DBPrintf("ShardCtrler: InitConfig: mockConfigId is %v\n", mockConfigId)
+
+		err := sck.IKVClerk.Put("nextConfig", mockConfigId, 0)
+
+		if err == rpc.OK {
 			return
 		}
 	}
@@ -131,7 +152,10 @@ func (sck *ShardCtrler) ChangeConfigTo(new *shardcfg.ShardConfig) {
 		return
 	}
 
-	sck.postNewConfig(new)
+	if ok := sck.postNewConfig(new); !ok {
+		shardgrp.DBPrintf("Cntrler %v failed to change config to %v\n", sck.Id, new.Num)
+		return
+	}
 
 	oldStates := make(map[shardcfg.Tshid][]byte)
 	for shardId := 0; shardId < shardcfg.NShards; shardId++ {
@@ -203,74 +227,31 @@ func (sck *ShardCtrler) ChangeConfigTo(new *shardcfg.ShardConfig) {
 
 	sck.curConfig = new.Copy()
 
-	shardgrp.DPrintf("Done ChangeConfig\n")
+	shardgrp.DBPrintf("cntrler %v: Done ChangeConfig to %v\n", sck.Id, new.Num)
 
 }
 
-// Freeze the shard in the current config and return its state
-// func (sck *ShardCtrler) freezeShard(shardId shardcfg.Tshid, num shardcfg.Tnum, gidOld tester.Tgid) ([]byte, rpc.Err) {
-// 	ck := shardgrp.MakeClerk(sck.clnt, sck.curConfig.Groups[gidOld])
-
-// 	for {
-// 		state, err := ck.FreezeShard(shardId, num)
-
-// 		if err == rpc.OK {
-// 			return state, err
-// 		}
-
-// 		if err == rpc.ErrWrongGroup {
-// 			sck.curConfig = sck.Query()
-// 			ck = shardgrp.MakeClerk(sck.clnt, sck.curConfig.Groups[gidOld])
-// 		}
-// 	}
-// }
-
-// // Install the shard state in the new config
-// func (sck *ShardCtrler) installShard(shardId shardcfg.Tshid, state []byte, num shardcfg.Tnum, gidNew tester.Tgid, new *shardcfg.ShardConfig) rpc.Err {
-// 	ck := shardgrp.MakeClerk(sck.clnt, new.Groups[gidNew])
-
-// 	for {
-// 		err := ck.InstallShard(shardId, state, num)
-
-// 		if err == rpc.OK {
-// 			return err
-// 		}
-
-// 	}
-// }
-
-// // Delete the shard in the old config
-// func (sck *ShardCtrler) deleteShard(shardId shardcfg.Tshid, num shardcfg.Tnum, gidOld tester.Tgid) rpc.Err {
-// 	ck := shardgrp.MakeClerk(sck.clnt, sck.curConfig.Groups[gidOld])
-
-// 	for {
-// 		err := ck.DeleteShard(shardId, num)
-
-// 		if err == rpc.OK {
-// 			return err
-// 		}
-
-// 		if err == rpc.ErrWrongGroup {
-// 			sck.curConfig = sck.Query()
-// 			ck = shardgrp.MakeClerk(sck.clnt, sck.curConfig.Groups[gidOld])
-// 		}
-// 	}
-// }
-
-// Replace config with new one
-func (sck *ShardCtrler) postNewConfig(new *shardcfg.ShardConfig) {
+// Replace config with new one, return true if succeeded
+// and false if the config has been changed by another controller
+func (sck *ShardCtrler) postNewConfig(new *shardcfg.ShardConfig) bool {
 	shardgrp.DPrintf("Beginning posting new config\n")
 
-	sck.printConfigs(new)
+	// sck.printConfigs(new)/
 
 	for {
 
+		time.Sleep(10 * time.Millisecond)
 		_, version, err := sck.IKVClerk.Get("nextConfig")
-
-		if err == rpc.ErrNoKey {
-			version = 0
-		} else if err != rpc.OK {
+		// shardgrp.DBPrintf("ShardCtrler: postNewConfig: version is %v\n", version)
+		if err != rpc.OK {
 			continue
+		}
+
+		// if version is not the previous version,
+		// return false
+		if shardcfg.Tnum(version) > new.Num-1 {
+			shardgrp.DBPrintf("Current version is: %v, new version is %v\n", version, new.Num)
+			return false
 		}
 
 		newConfigId := new.String()
@@ -279,9 +260,15 @@ func (sck *ShardCtrler) postNewConfig(new *shardcfg.ShardConfig) {
 
 		// Succeeded changing the config
 		if err == rpc.OK {
-			shardgrp.DPrintf("ShardCtrler: new config posted")
-			return
+			shardgrp.DBPrintf("ShardCtrler %v: new config posted", sck.Id)
+			return true
 		}
+
+		if err == rpc.ErrVersion {
+
+		}
+
+		shardgrp.DBPrintf("ShardCtrler %v: failed to post new config, trying it again\n", sck.Id)
 
 	}
 
@@ -291,7 +278,7 @@ func (sck *ShardCtrler) postNewConfig(new *shardcfg.ShardConfig) {
 func (sck *ShardCtrler) Query() *shardcfg.ShardConfig {
 
 	for {
-
+		// time.Sleep(1 * time.Millisecond)
 		cfgId, _, err := sck.IKVClerk.Get("config")
 
 		if err == rpc.OK {
@@ -333,6 +320,7 @@ func (sck *ShardCtrler) updateConfig(new *shardcfg.ShardConfig) {
 	// sck.printConfigs(new)
 
 	for {
+		time.Sleep(1 * time.Millisecond)
 
 		_, version, err := sck.IKVClerk.Get("config")
 

@@ -367,15 +367,15 @@ func (ts *Test) concurCtrler(ck kvtest.IKVClerk, ka, va []string) {
 				ngid := ts.newGid()
 				sck := ts.makeShardCtrler()
 				sck.InitController()
-				//log.Printf("%v: electCtrler %d join/leave %v", sck.Id(), i, ngid)
+				log.Printf("%v: electCtrler %d join/leave %v", sck.Id, i, ngid)
 				ts.joinGroups(sck, []tester.Tgid{ngid})
 				if ok := ts.checkMember(sck, ngid); ok {
-					//log.Printf("%v: electCtrler %d leave %d", sck.Id(), i, ngid)
+					log.Printf("%v: electCtrler %d leave %d", sck.Id, i, ngid)
 					if ok := ts.leaveGroups(sck, []tester.Tgid{ngid}); !ok {
-						//log.Printf("%v: electCtrler %d leave %v failed", sck.Id(), i, ngid)
+						log.Printf("%v: electCtrler %d leave %v failed", sck.Id, i, ngid)
 					}
 				} else {
-					//log.Printf("%v: electCtrler %d join %v failed", sck.Id(), i, ngid)
+					log.Printf("%v: electCtrler %d join %v failed", sck.Id, i, ngid)
 				}
 			}
 		}
