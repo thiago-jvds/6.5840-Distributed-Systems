@@ -220,8 +220,8 @@ func (rsm *RSM) Submit(req any) (rpc.Err, any) {
 				return rpc.OK, res
 			}
 			if index <= rsm.lastAppliedIndex {
-				rsm.mu.Unlock()
 				DPrintf("SUBMIT: submitting op.id: %v, op.req: %v, op.me: %v\n", op.Id, op.Req, op.Me)
+				rsm.mu.Unlock()
 				continue
 			}
 

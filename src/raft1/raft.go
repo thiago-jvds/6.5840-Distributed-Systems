@@ -275,11 +275,11 @@ func (rf *Raft) CheckElection() {
 		rf.mu.Unlock()
 
 		// Randomly select the election time
-		electionTimeout := time.Duration(400+rand.Intn(200)) * time.Millisecond
+		electionTimeout := time.Duration(100+rand.Intn(100)) * time.Millisecond
 
 		// Heartbeat interval
 		// Hint: < 100ms (https://piazza.com/class/m6hpwkz1o806u2/post/109)
-		heartbeatInterval := time.Duration(100) * time.Millisecond
+		heartbeatInterval := time.Duration(70) * time.Millisecond
 
 		// Implementing according to the hint by
 		// https://piazza.com/class/m6hpwkz1o806u2/post/102

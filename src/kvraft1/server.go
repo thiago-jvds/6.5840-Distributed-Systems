@@ -130,6 +130,15 @@ func (kv *KVServer) DoOp(req any) any {
 
 		kv.kvdbase[key] = KDBEntry{val, proposedVersion + 1}
 
+		cmd := Cmd{
+			Key:     key,
+			Value:   trueVal.Value,
+			CId:     req.CId,
+			RId:     req.RId,
+			Version: trueVal.Version,
+		}
+		kv.client2latestCmd[req.CId] = cmd
+
 		reply.Err = rpc.OK
 		return &reply
 

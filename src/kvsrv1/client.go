@@ -47,7 +47,7 @@ func (ck *Clerk) Get(key string) (string, rpc.Tversion, rpc.Err) {
 			return reply.Value, reply.Version, reply.Err
 		}
 
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(1 * time.Millisecond)
 	}
 }
 
@@ -112,6 +112,6 @@ func (ck *Clerk) Put(key, value string, version rpc.Tversion) rpc.Err {
 			return rpc.ErrMaybe
 		}
 
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(1 * time.Millisecond)
 	}
 }

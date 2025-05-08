@@ -62,41 +62,21 @@ func (sck *ShardCtrler) getClerk(gid tester.Tgid, new *shardcfg.ShardConfig) *sh
 // B and C, this method implements recovery.
 func (sck *ShardCtrler) InitController() {
 	shardgrp.DPrintf("ShardCtrler: InitController\n")
-	for {
-		time.Sleep(1 * time.Millisecond)
 
-		cfgId, _, err := sck.IKVClerk.Get("config")
-
-		if err == rpc.ErrNoKey {
-			return
-		}
-
-		if err == rpc.OK {
-			sck.curConfig = shardcfg.FromString(cfgId)
-			break
-		}
-	}
-
-	shardgrp.DPrintf("COmpleted getting curConfig\n")
-	for {
-		time.Sleep(1 * time.Millisecond)
-		// shardgrp.DBPrintf("ShardCtrler: InitController: curConfig num is %v\n", sck.curConfig.Num)
-		cfgId, _, err := sck.IKVClerk.Get("nextConfig")
-
-		if err == rpc.ErrNoKey {
-			return
-		}
-
-		if err == rpc.OK {
-			sck.nextConfig = shardcfg.FromString(cfgId)
-			break
-		}
-	}
+	sck.curConfig = sck.Query()
+	sck.nextConfig = sck.QueryNew()
 	// shardgrp.DPrintf("ShardCtrler: InitController: curConfig num is %v\n", sck.curConfig.Num)
 	// shardgrp.DPrintf("ShardCtrler: InitController: nextConfig is num %v\n", sck.nextConfig.Num)
 	if sck.nextConfig.Num > sck.curConfig.Num {
 		shardgrp.DPrintf("ShardCtrler: InitController: nextConfig is %v\n", sck.nextConfig)
-		sck.ChangeConfigTo(sck.nextConfig)
+
+		time.Sleep(1000 * time.Millisecond)
+		old := sck.Query()
+		new := sck.QueryNew()
+
+		if old.Num == sck.curConfig.Num && new.Num == sck.nextConfig.Num {
+			sck.ChangeConfigTo(sck.nextConfig)
+		}
 	}
 
 }
@@ -241,12 +221,22 @@ func (sck *ShardCtrler) postNewConfig(new *shardcfg.ShardConfig) bool {
 	for {
 
 		time.Sleep(10 * time.Millisecond)
-		_, version, err := sck.IKVClerk.Get("nextConfig")
+		currentConfigId, version, err := sck.IKVClerk.Get("nextConfig")
 		// shardgrp.DBPrintf("ShardCtrler: postNewConfig: version is %v\n", version)
 		if err != rpc.OK {
 			continue
 		}
 
+		// if num is already the same, check if the config is the same
+		// this allows for failed controllers
+		if shardcfg.Tnum(version) == new.Num {
+			if new.String() != currentConfigId {
+				return false
+			} else {
+				return true
+			}
+
+		}
 		// if version is not the previous version,
 		// return false
 		if shardcfg.Tnum(version) > new.Num-1 {
@@ -286,6 +276,18 @@ func (sck *ShardCtrler) Query() *shardcfg.ShardConfig {
 		}
 	}
 
+}
+
+func (sck *ShardCtrler) QueryNew() *shardcfg.ShardConfig {
+
+	for {
+		// time.Sleep(1 * time.Millisecond)
+		cfgId, _, err := sck.IKVClerk.Get("nextConfig")
+
+		if err == rpc.OK {
+			return shardcfg.FromString(cfgId)
+		}
+	}
 }
 
 func (sck *ShardCtrler) printConfigs(new *shardcfg.ShardConfig) {
