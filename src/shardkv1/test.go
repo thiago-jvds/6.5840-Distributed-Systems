@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	kvraft "6.5840/kvraft1"
 	"6.5840/kvraft1/rsm"
 	kvsrv "6.5840/kvsrv1"
 	"6.5840/kvsrv1/rpc"
@@ -47,7 +48,7 @@ func MakeTestMaxRaft(t *testing.T, part string, reliable, partition bool, maxraf
 		partition:    partition,
 		maxraftstate: maxraftstate,
 	}
-	cfg := tester.MakeConfig(t, 1, reliable, kvsrv.StartKVServer)
+	cfg := tester.MakeConfig(t, 1, reliable, kvraft.StartKVServerWrapper)
 	ts.Test = kvtest.MakeTest(t, cfg, false, ts)
 	// XXX to avoid panic
 	tester.AnnotateTest(part, 1)
@@ -117,7 +118,9 @@ func (ts *Test) setupKVService() tester.Tgid {
 	ts.sck = ts.makeShardCtrler()
 	scfg := shardcfg.MakeShardConfig()
 	ts.Config.MakeGroupStart(shardcfg.Gid1, NSRV, ts.StartServerShardGrp)
+	ts.Config.MakeGroupStart(Controler, 3, kvraft.StartKVServerWrapper)
 	scfg.JoinBalance(map[tester.Tgid][]string{shardcfg.Gid1: ts.Group(shardcfg.Gid1).SrvNames()})
+
 	ts.sck.InitConfig(scfg)
 	return shardcfg.Gid1
 }

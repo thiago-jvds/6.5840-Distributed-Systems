@@ -8,7 +8,7 @@ import (
 	"math/rand"
 	"time"
 
-	kvsrv "6.5840/kvsrv1"
+	kvraft "6.5840/kvraft1"
 	"6.5840/kvsrv1/rpc"
 	kvtest "6.5840/kvtest1"
 	"6.5840/shardkv1/shardcfg"
@@ -29,11 +29,18 @@ type ShardCtrler struct {
 	clerks     map[tester.Tgid]*shardgrp.Clerk
 }
 
-// Make a ShardCltler, which stores its state in a kvsrv.
+// Make a ShardCltler, which stores its state in a kvraft srv.
 func MakeShardCtrler(clnt *tester.Clnt) *ShardCtrler {
 	sck := &ShardCtrler{clnt: clnt}
-	srv := tester.ServerName(tester.GRP0, 0)
-	sck.IKVClerk = kvsrv.MakeClerk(clnt, srv)
+
+	// controler uses group 0 for a kvraft group
+	srv1 := tester.ServerName(tester.Tgid(0), 1)
+	srv2 := tester.ServerName(tester.Tgid(0), 2)
+	srv3 := tester.ServerName(tester.Tgid(0), 3)
+
+	// changed here to raft for 5D
+	sck.IKVClerk = kvraft.MakeClerk(clnt, []string{srv1, srv2, srv3})
+
 	sck.curConfig = nil
 	sck.clerks = make(map[tester.Tgid]*shardgrp.Clerk)
 	sck.Id = rand.Int31()

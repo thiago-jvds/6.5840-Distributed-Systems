@@ -2,6 +2,7 @@ package shardkv
 
 import (
 	//"log"
+
 	"testing"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 const (
 	NGRP  = 8
 	NKEYS = 5 * shardcfg.NShards
+	GID0  = tester.Tgid(0)
 )
 
 // Test shard controller's Init and Query with a key/value server from
@@ -716,4 +718,53 @@ func TestPartitionRecoveryUnreliableClerks5C(t *testing.T) {
 		NPARTITION = 3
 	)
 	partitionRecovery5C(t, false, NPARTITION, 5)
+}
+
+// checks that the controller can query and update the
+// configuration while one of the kvraft peers is down.
+func TestRaftPeerDown5D(t *testing.T) {
+	ts := MakeTest(t, "Test (5D): Config with one peer down ..." /*reliable=*/, true)
+	defer ts.Cleanup()
+
+	// The tester's setupKVService() sets up a kvsrv for the
+	// controller to store configurations and calls the controller's
+	// Init() method to create the first configuration with 1
+	// shardgrp.
+	ts.setupKVService()
+
+	ck := ts.MakeClerk()               // make a shardkv clerk
+	ka, va := ts.SpreadPuts(ck, NKEYS) // do some puts
+	sck := ts.ShardCtrler()
+
+	// take a peer down
+	ts.Group(GID0).ShutdownServer(0)
+
+	// change config
+	gid2 := ts.newGid()
+	if ok := ts.joinGroups(sck, []tester.Tgid{gid2}); !ok {
+		ts.t.Fatalf("TestRaftPeerDown5D: joinGroups failed")
+	}
+
+	for i := 0; i < len(ka); i++ {
+		ts.CheckGet(ck, ka[i], va[i], rpc.Tversion(1))
+	}
+
+	ts.leave(sck, shardcfg.Gid1)
+	if ok := ts.checkMember(sck, shardcfg.Gid1); ok {
+		ts.t.Fatalf("%d is a member after leave", shardcfg.Gid1)
+	}
+
+	// check if can query
+	ch := make(chan *shardcfg.ShardConfig)
+	go func() {
+		ch <- sck.Query()
+	}()
+
+	select {
+	case <-ch:
+		// ts.Fatalf("Query didn't finished %v", err)
+	case <-time.After(2 * time.Second):
+		ts.Fatalf("Querying didn't complete on time")
+	}
+
 }
