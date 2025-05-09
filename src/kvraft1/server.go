@@ -325,3 +325,9 @@ func StartKVServer(servers []*labrpc.ClientEnd, gid tester.Tgid, me int, persist
 
 	return []tester.IService{kv, kv.rsm.Raft()}
 }
+
+func StartKVServerWrapper(servers []*labrpc.ClientEnd, gid tester.Tgid, me int, persister *tester.Persister) []tester.IService {
+	// never snapshot
+	maxraftstate := -1
+	return StartKVServer(servers, gid, me, persister, maxraftstate)
+}
