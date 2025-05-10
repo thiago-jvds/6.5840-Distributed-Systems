@@ -37,9 +37,11 @@ func MakeShardCtrler(clnt *tester.Clnt) *ShardCtrler {
 	srv1 := tester.ServerName(tester.Tgid(0), 1)
 	srv2 := tester.ServerName(tester.Tgid(0), 2)
 	srv3 := tester.ServerName(tester.Tgid(0), 3)
+	srv4 := tester.ServerName(tester.Tgid(0), 4)
+	srv5 := tester.ServerName(tester.Tgid(0), 5)
 
 	// changed here to raft for 5D
-	sck.IKVClerk = kvraft.MakeClerk(clnt, []string{srv1, srv2, srv3})
+	sck.IKVClerk = kvraft.MakeClerk(clnt, []string{srv1, srv2, srv3, srv4, srv5})
 
 	sck.curConfig = nil
 	sck.clerks = make(map[tester.Tgid]*shardgrp.Clerk)

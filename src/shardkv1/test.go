@@ -118,7 +118,7 @@ func (ts *Test) setupKVService() tester.Tgid {
 	ts.sck = ts.makeShardCtrler()
 	scfg := shardcfg.MakeShardConfig()
 	ts.Config.MakeGroupStart(shardcfg.Gid1, NSRV, ts.StartServerShardGrp)
-	ts.Config.MakeGroupStart(Controler, 3, kvraft.StartKVServerWrapper)
+	ts.Config.MakeGroupStart(Controler, 5, kvraft.StartKVServerWrapper)
 	scfg.JoinBalance(map[tester.Tgid][]string{shardcfg.Gid1: ts.Group(shardcfg.Gid1).SrvNames()})
 
 	ts.sck.InitConfig(scfg)
